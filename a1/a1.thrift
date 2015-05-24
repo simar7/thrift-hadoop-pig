@@ -38,7 +38,7 @@ service A1Management {
     // Group member names interface.
     list<string> getGroupMembers()
 
-    // Other interfaces
+    // Other interfaces.
 
     /*
         TODO: Join Cluster Interface
