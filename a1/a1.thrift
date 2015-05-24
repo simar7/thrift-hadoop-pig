@@ -15,7 +15,7 @@ struct PerfCounters {
     3: int32_t numRequestsCompleted // # of req completed by service handler.
 }
 
-service A1Management {
+service A1Password {
 
     string hashPassword (
         1: string password,
@@ -23,6 +23,9 @@ service A1Management {
     ) throws (
         1: ServiceUnavailableException e
     )
+}
+
+service A1Management {
 
     bool checkPassword (
         1: string password,
@@ -34,4 +37,19 @@ service A1Management {
 
     // Group member names interface.
     list<string> getGroupMembers()
+
+    // Other interfaces
+
+    /*
+        TODO: Join Cluster Interface
+        Description: This interface connectes a FE or BE
+                     node to the seed nodes (CE) to join
+                     the processing cluster.
+     */
+
+    /*
+        TODO: Periodic Learning Interface
+        Description: This interface makes all other FE
+                     nodes aware of its presence.
+     */
 }
