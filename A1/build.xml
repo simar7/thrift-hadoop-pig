@@ -68,7 +68,7 @@
       <sequential>
         <sleep seconds="2"/>
         <echo>a1 client simple:</echo>
-        <java classname="JavaClient"
+        <java classname="a1client"
           classpathref="a1.classpath" failonerror="true">
           <arg line="simple"/>
         </java>
@@ -86,22 +86,15 @@
 
   <target name="a1client" description="Run a a1 client" depends="compile">
     <echo>a1 client simple:</echo>
-    <java classname="JavaClient"
+    <java classname="a1client"
       classpathref="a1.classpath" failonerror="true">
       <arg line="simple"/>
     </java>
   </target>
 
-  <target name="remoteclient" description="Run a a1 client" >
-    <echo>a1 client simple:</echo>
-    <java classname="JavaClient2"
-      classpathref="a1.classpath" failonerror="true">
-      <arg line="simple eceubuntu"/>
-    </java>
-  </target>
 
   <target name="a1server" description="Run a a1 server" depends="compile">
-      <java classname="JavaServer" fork="true"
+      <java classname="a1server" fork="true"
         classpathref="a1.classpath" failonerror="false" output="${build}/log/a1.log">
       </java>
   </target>
