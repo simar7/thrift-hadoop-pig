@@ -25,15 +25,9 @@
     <property name="build" location="build"/>
 
     <path id="libs.classpath">
-        <fileset dir="/home/simar/thrift/thrift-0.9.2/lib/java/build">
+        <fileset dir="jars/">
             <include name="*.jar"/>
             <exclude name="-test.jar"/>
-        </fileset>
-        <fileset dir="/home/simar/thrift/thrift-0.9.2/lib/java/build/lib">
-            <include name="*.jar"/>
-        </fileset>
-        <fileset dir="">
-            <include name="*.jar"/>
         </fileset>
     </path>
     <path id="build.classpath">
