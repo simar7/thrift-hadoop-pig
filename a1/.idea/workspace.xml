@@ -2,16 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="03fe1530-3da4-4191-b373-e48d5eb8102d" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/A1ManagementHandler.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/A1PasswordHandler.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/thrift_0_9.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen-java/ece454750s15a1/A1Management.java" afterPath="$PROJECT_DIR$/gen-java/ece454750s15a1/A1Management.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen-java/ece454750s15a1/A1Password.java" afterPath="$PROJECT_DIR$/gen-java/ece454750s15a1/A1Password.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/FEServer.java" afterPath="$PROJECT_DIR$/src/FEServer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen-java/ece454750s15a1/PerfCounters.java" afterPath="$PROJECT_DIR$/gen-java/ece454750s15a1/PerfCounters.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gen-java/ece454750s15a1/ServiceUnavailableException.java" afterPath="$PROJECT_DIR$/gen-java/ece454750s15a1/ServiceUnavailableException.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/a1.iml" afterPath="$PROJECT_DIR$/.idea/a1.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="a1.iws" />
@@ -390,6 +380,11 @@
     </leaf>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Simarpreet Singh &lt;s244sing@uwaterloo.ca&gt;" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="GradleLocalSettings">
@@ -668,6 +663,13 @@
       <option name="number" value="Default" />
       <updated>1432443765788</updated>
     </task>
+    <task id="LOCAL-00001" summary="Adding basic FEServer and thrift interface handlers.">
+      <created>1432532572843</created>
+      <option name="number" value="00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1432532572843</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -684,6 +686,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299748" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -700,6 +703,10 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adding basic FEServer and thrift interface handlers." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding basic FEServer and thrift interface handlers." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
