@@ -4,7 +4,7 @@ import org.apache.thrift.TException;
 import ece454750s15a1.*;
 
 // TODO: Check if this is the right excpetion
-import javax.naming.ServiceUnavailableException;
+import java.lang.Exception;
 
 public class A1PasswordHandler implements A1Password.Iface {
 
@@ -12,7 +12,13 @@ public class A1PasswordHandler implements A1Password.Iface {
         // TODO: Do we need anything here?
     }
 
-    String hashPassword(String password, int logRounds) throws ServiceUnavailableException {
+    public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         // TODO: jBcrypt logic here.
+        // TODO: Fix the empty string to meaningful hash.
+        // return "";
+
+        // if something isn't right
+        ServiceUnavailableException SUE = new ServiceUnavailableException();
+        throw SUE;
     }
 }

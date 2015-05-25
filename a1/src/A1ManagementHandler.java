@@ -1,5 +1,6 @@
 import ece454750s15a1.*;
 
+import java.lang.Exception;
 import java.lang.Integer;
 import java.lang.String;
 import java.util.ArrayList;
@@ -7,28 +8,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-
 public class A1ManagementHandler implements A1Management.Iface {
 
-    private HashMap<String, PerfCounters> perfMap;
+    private PerfCounters perfList;
     private List<String> groupMembers;
 
     public A1ManagementHandler() {
-        perfMap = new HashMap<String, PerfCounters>();
+        perfList = new PerfCounters();
         groupMembers = Arrays.asList("s244sing", "cpinn");
     }
 
-    boolean checkPassword(String password, String hash) {
-        // TODO: Implement jBcrypt logic.
+    public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
+        try {
+            // TODO: Implement jBcrypt logic.
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // Return performance metrics.
-    PerfCounters getPerfCounters() {
-        return perfMap;
+    public PerfCounters getPerfCounters() {
+        return perfList;
     }
 
     // Return group member list.
-    List<String> getGroupMembers() {
+    public List<String> getGroupMembers() {
         return groupMembers;
     }
 
