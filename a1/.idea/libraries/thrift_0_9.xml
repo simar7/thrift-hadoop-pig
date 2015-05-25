@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="thrift-0.9">
+    <CLASSES>
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/lib/java/build/javadoc" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/contrib/thrift-maven-plugin/src/main/java" />
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/contrib/thrift-maven-plugin/src/test/java" />
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/lib/java/src" />
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/lib/java/test" />
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/lib/javame/src" />
+      <root url="file://$USER_HOME$/thrift/thrift-0.9.2/lib/js/test/src" />
+    </SOURCES>
+  </library>
+</component>
