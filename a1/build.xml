@@ -54,7 +54,7 @@
     <target name="test" depends="a1"/>
 
     <!-- target name="a1" description="Run the a1" -->
-    <target name="a1" description="Run the a1. a1Client, BEServer and FEServer are run." depends="compile">
+    <target name="a1" description="Run the a1. A1Client, BEServer and FEServer are run." depends="compile">
         <jar jarfile="a1.jar" basedir="${build}"/>
         <parallel>
             <echo>a1 BEServer simple:</echo>
@@ -67,8 +67,8 @@
                 <java classname="FEServer" fork="true" timeout="10000"
                       classpathref="a1.classpath" failonerror="false" output="${build}/log/a1.log">
                 </java>
-                <echo>a1 a1Client simple:</echo>
-                <java classname="a1Client"
+                <echo>a1 A1Client simple:</echo>
+                <java classname="A1Client"
                       classpathref="a1.classpath" failonerror="true">
                     <arg line="simple"/>
                 </java>
@@ -85,7 +85,7 @@
 
     <target name="a1client" description="Run a a1 client" depends="compile">
         <echo>a1 client simple:</echo>
-        <java classname="a1Client"
+        <java classname="A1Client"
               classpathref="a1.classpath" failonerror="true">
             <arg line="simple"/>
         </java>
@@ -93,7 +93,7 @@
 
     <target name="remoteclient" description="Remotely runs a a1 client">
         <echo>a1 client simple:</echo>
-        <java classname="a1ClientRemote"
+        <java classname="A1ClientRemote"
               classpathref="a1.classpath" failonerror="true">
             <arg line="simple eceubuntu"/>
         </java>

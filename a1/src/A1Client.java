@@ -7,12 +7,12 @@ import org.apache.thrift.transport.TTransport;
 
 public class A1Client {
 
-    private void helpMenu() {
+    private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
         System.out.println("-host: name of the host on which this process will run");
         System.out.println("-pport: port number for A1Password Service");
         System.out.println("-mport: port number for A1Management Service");
-        System.out.println("-ncores: number of cores available to the process"):
+        System.out.println("-ncores: number of cores available to the process");
         System.out.println("-seeds: CSV list of host:port pairs in FE nodes that are seeds.");
         System.out.println("Seed ports are in A1Management service");
     }
@@ -31,7 +31,7 @@ public class A1Client {
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);
-            A1PasswordHandler.Client client = new A1Password.Client(protocol);
+            A1Password.Client client = new A1Password.Client(protocol);
 
             perform(client);
 
@@ -43,7 +43,7 @@ public class A1Client {
         }
     }
 
-    private static void perform(A1PasswordHandler.Client client) throws TException {
+    private static void perform(A1Password.Client client) throws TException {
 
         // TODO: Finish up taking inputs from CLI.
         System.out.print("Enter password: ");
