@@ -23,14 +23,15 @@ service A1Password {
     ) throws (
         1: ServiceUnavailableException e
     )
-}
-
-service A1Management {
 
     bool checkPassword (
         1: string password,
         2: string hash
     )
+
+}
+
+service A1Management {
 
     // Performance counters. Both FE & BE
     PerfCounters getPerfCounters()
