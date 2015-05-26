@@ -18,16 +18,6 @@ public class A1ManagementHandler implements A1Management.Iface {
         groupMembers = Arrays.asList("s244sing", "cpinn");
     }
 
-    public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
-        try {
-            // TODO: Implement jBcrypt logic.
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
         return perfList;

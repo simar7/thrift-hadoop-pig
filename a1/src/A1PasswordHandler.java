@@ -21,4 +21,14 @@ public class A1PasswordHandler implements A1Password.Iface {
         ServiceUnavailableException SUE = new ServiceUnavailableException();
         throw SUE;
     }
+
+    public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
+        try {
+            // TODO: Implement jBcrypt logic.
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
