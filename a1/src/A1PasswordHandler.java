@@ -1,4 +1,5 @@
 import org.apache.thrift.TException;
+import org.mindrot.jbcrypt.*;
 
 // Generated code
 import ece454750s15a1.*;
