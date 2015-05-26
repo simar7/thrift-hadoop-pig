@@ -27,6 +27,8 @@ service A1Password {
     bool checkPassword (
         1: string password,
         2: string hash
+    ) throws (
+        1: ServiceUnavailableException e
     )
 
 }
