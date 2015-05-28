@@ -1,0 +1,128 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements. See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership. The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied. See the License for the
+ specific language governing permissions and limitations
+ under the License.
+-->
+<project name="ece454750s15a1" default="ece454750s15a1" basedir=".">
+
+    <description>Thrift Java Tutorial</description>
+
+    <property name="src" location="src"/>
+    <property name="gen" location="gen-java"/>
+    <property name="build" location="build"/>
+
+    <path id="libs.classpath">
+        <fileset dir="../lib/">
+            <include name="*.jar"/>
+            <exclude name="-test.jar"/>
+        </fileset>
+    </path>
+    <path id="build.classpath">
+        <path refid="libs.classpath"/>
+        <pathelement path="${gen}"/>
+    </path>
+    <path id="ece454750s15a1.classpath">
+        <path refid="build.classpath"/>
+        <pathelement path="${build}"/>
+        <pathelement path="../lib/ece454750s15a1.jar"/>
+    </path>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build}/log"/>
+    </target>
+
+    <target name="compile" depends="init, generate">
+        <javac source="1.6" target="1.6" srcdir="${gen}" destdir="${build}" classpathref="libs.classpath"/>
+        <javac source="1.6" target="1.6" srcdir="${src}" destdir="${build}" classpathref="build.classpath"/>
+    </target>
+
+    <target name="test" depends="ece454750s15a1"/>
+
+    <!-- target name="ece454750s15a1" description="Run the ece454750s15a1" -->
+    <target name="ece454750s15a1" description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run." depends="compile">
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
+        <parallel>
+            
+            <echo>ece454750s15a1 FESeed</echo>
+                <java classname="FEServer" fork="true" timeout="10000"
+                    classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
+                <arg line="-host localhost -pport 11234 -mport 9999 -ncores 2 -seeds localhost:9999" />
+            </java>         
+            
+            <echo>ece454750s15a1 BEServer</echo>
+                <java classname="BEServer" fork="true" timeout="10000"
+                      classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
+                      <arg line="-host localhost -pport 51234 -mport 51235 -ncores 2 -seeds localhost:9999"/>
+                </java>
+                        
+            <echo>ece454750s15a1 FEServer</echo>
+                <java classname="FEServer" fork="true" timeout="10000"
+                      classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
+                      <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999" />
+            </java>
+            
+            <echo>ece454750s15a1 ece454750s15a1Client</echo>
+                <java classname="A1Client"
+                      classpathref="ece454750s15a1.classpath" failonerror="true">
+                <arg line="-host localhost -pport 11234 -mport 11235 -ncores 2 -seeds localhost:9999"/>
+            </java>
+
+        </parallel>
+    </target>
+
+    <target name="generate">
+        <!-- Generate the thrift gen-java source -->
+        <exec executable="/usr/bin/thrift" failonerror="true">
+            <arg line="--gen java -r ece454750s15a1.thrift"/>
+        </exec>
+    </target>
+
+    <target name="ece454750s15a1client" description="Run a ece454750s15a1 client" depends="compile">
+        <echo>ece454750s15a1 client simple:</echo>
+        <java classname="ece454750s15a1Client"
+              classpathref="ece454750s15a1.classpath" failonerror="true">
+            <arg line="simple"/>
+        </java>
+    </target>
+
+    <target name="remoteclient" description="Remotely runs a ece454750s15a1 client">
+        <echo>ece454750s15a1 client simple:</echo>
+        <java classname="ece454750s15a1ClientRemote"
+              classpathref="ece454750s15a1.classpath" failonerror="true">
+            <arg line="simple eceubuntu"/>
+        </java>
+    </target>
+
+    <target name="ece454750s15a1servers" description="Run both BEServer and FEServer" depends="compile">
+        <sequential>
+            <java classname="BEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
+            </java>
+            <java classname="FEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
+            </java>
+        </sequential>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete dir="${gen}"/>
+        <delete file="../lib/ece454750s15a1.jar"/>
+    </target>
+
+</project>

@@ -6,17 +6,17 @@ import org.mindrot.jbcrypt.BCrypt;
 
 // TODO: Check if this is the right excpetion
 import java.lang.Exception;
+import java.lang.System;
 
-public class A1PasswordHandler implements A1Password.Iface {
+public class FEPasswordHandler implements FEPassword.Iface {
 
-    public A1PasswordHandler() {
-        // TODO: Do we need anything here?
-    }
-
+    // this is a placeholder, but in reality, forward all requests to BEServer
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
+        System.out.println("Password = " + password + " " + "logRounds = " + logRounds);
 
         String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
-        if (hashed) {
+        System.out.println("hashedString = " + hashedString);
+        if (hashedString.length() != 0) {
             return hashedString;
         }
         else {  // something isn't right.
@@ -28,8 +28,15 @@ public class A1PasswordHandler implements A1Password.Iface {
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
         try {
-            // TODO: Implement jBcrypt logic.
-            return true;
+            boolean result = BCrypt.checkpw(password, hash);
+            if (result) {
+                System.out.println("Password Matches.");
+                return true;
+            }
+            else {
+                System.out.println("Password Mismatch");
+                return false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

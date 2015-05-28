@@ -8,12 +8,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class A1ManagementHandler implements A1Management.Iface {
+
+public class BEManagementHandler implements BEManagement.Iface {
 
     private PerfCounters perfList;
     private List<String> groupMembers;
 
-    public A1ManagementHandler() {
+    public BEManagementHandler() {
         perfList = new PerfCounters();
         groupMembers = Arrays.asList("s244sing", "cpinn");
     }
@@ -31,6 +32,10 @@ public class A1ManagementHandler implements A1Management.Iface {
     // Other Interfaces
 
     // Join Cluster Interface
+    public boolean joinCluster (String host, int pport, int mport, int ncores) {
+        // TODO: check if anything needs to be done?
+        return true;
+    }
 
     // Periodic Learning Interface
 

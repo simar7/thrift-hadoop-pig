@@ -15,7 +15,7 @@ struct PerfCounters {
     3: int32_t numRequestsCompleted // # of req completed by service handler.
 }
 
-service A1Password {
+service BEPassword {
 
     string hashPassword (
         1: string password,
@@ -33,7 +33,24 @@ service A1Password {
 
 }
 
-service A1Management {
+service BEManagement {
+
+    // Performance counters. Both FE & BE
+    PerfCounters getPerfCounters()
+
+    // Group member names interface.
+    list<string> getGroupMembers()
+
+    bool joinCluster (
+        1: string host,
+        2: int32_t pport,
+        3: int32_t mport,
+        4: int32_t ncores,
+    )
+}
+
+
+service FEManagement {
 
     // Performance counters. Both FE & BE
     PerfCounters getPerfCounters()
@@ -49,10 +66,35 @@ service A1Management {
                      node to the seed nodes (CE) to join
                      the processing cluster.
      */
-
+    bool joinCluster (
+        1: string host,
+        2: int32_t pport,
+        3: int32_t mport,
+        4: int32_t ncores
+    )
+    
     /*
         TODO: Periodic Learning Interface
         Description: This interface makes all other FE
                      nodes aware of its presence.
      */
 }
+
+service FEPassword {
+
+    string hashPassword (
+        1: string password,
+        2: int16_t logRounds
+    ) throws (
+        1: ServiceUnavailableException e
+    )
+
+    bool checkPassword (
+        1: string password,
+        2: string hash
+    ) throws (
+        1: ServiceUnavailableException e
+    )
+
+}
+

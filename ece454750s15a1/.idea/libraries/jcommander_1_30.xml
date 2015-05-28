@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jcommander-1.30">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jars/jcommander-1.30.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
