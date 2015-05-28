@@ -58,25 +58,25 @@
         <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
             
-            <echo>ece454750s15a1 FESeed</echo>
+            <echo>[ece454750s15a1] FESeed</echo>
                 <java classname="FEServer" fork="true" timeout="10000"
                     classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
                 <arg line="-host localhost -pport 11234 -mport 9999 -ncores 2 -seeds localhost:9999" />
             </java>         
             
-            <echo>ece454750s15a1 BEServer</echo>
+            <echo>[ece454750s15a1] BEServer</echo>
                 <java classname="BEServer" fork="true" timeout="10000"
                       classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
                       <arg line="-host localhost -pport 51234 -mport 51235 -ncores 2 -seeds localhost:9999"/>
                 </java>
                         
-            <echo>ece454750s15a1 FEServer</echo>
+            <echo>[ece454750s15a1] FEServer</echo>
                 <java classname="FEServer" fork="true" timeout="10000"
                       classpathref="ece454750s15a1.classpath" failonerror="false" output="${build}/log/ece454750s15a1.log">
                       <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999" />
             </java>
             
-            <echo>ece454750s15a1 ece454750s15a1Client</echo>
+            <echo>[ece454750s15a1] A1Client</echo>
                 <java classname="A1Client"
                       classpathref="ece454750s15a1.classpath" failonerror="true">
                 <arg line="-host localhost -pport 11234 -mport 11235 -ncores 2 -seeds localhost:9999"/>
