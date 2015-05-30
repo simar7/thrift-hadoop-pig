@@ -10,15 +10,15 @@ import java.lang.System;
 
 public class A1Client {
 
-    private static String host;
-    private static Integer pport;
-    private static Integer mport;
-    private static Integer ncores;
+    public static String host;
+    public static Integer pport;
+    public static Integer mport;
+    public static Integer ncores;
     // TODO: fix this to be more than one, csv'd by comma and colon.
-    private static String seeds;
+    public static String seeds;
 
     private static void helpMenu() {
-        System.out.println("java ece454750s15a1.FEServer");
+        System.out.println("java ece454750s15a1.A1Client");
         System.out.println("-host: name of the host on which this process will run");
         System.out.println("-pport: port number for A1Password Service");
         System.out.println("-mport: port number for A1Management Service");
@@ -28,22 +28,23 @@ public class A1Client {
     }
 
 
-    private static void parseArgs (String [] args) {
+    public static void parseArgs (String [] args) {
         for(int i = 0; i < args.length - 1; i++) {
+            System.out.println("[client] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
-                if(args_to_check == "-host") {
+                if(args_to_check.equals("-host")) {
                     host = args[i + 1];
                 }
-                else if(args_to_check == "-pport") {
+                else if(args_to_check.equals("-pport")) {
                     pport = Integer.parseInt(args[i + 1]);
                 }
-                else if(args_to_check == "-mport") {
+                else if(args_to_check.equals("-mport")) {
                     mport = Integer.parseInt(args[i + 1]);
                 }
-                else if(args_to_check == "ncores") {
+                else if(args_to_check.equals("-ncores")) {
                     ncores = Integer.parseInt(args[i + 1]);
                 }
-                else if(args_to_check == "seeds") {
+                else if(args_to_check.equals("-seeds")) {
                     seeds = args[i + 1];
                 }
         }
@@ -57,15 +58,17 @@ public class A1Client {
             helpMenu();
         }
 
-        parseArgs(args);
+        A1Client.parseArgs(args);
 
         try {
             TTransport transport_password;
-            transport_password = new TSocket("localhost", 9090);
+            System.out.println("Trying to start transport_password on pport = " + pport);
+            transport_password = new TSocket("localhost", pport);
             transport_password.open();
 
             TTransport transport_management;
-            transport_management = new TSocket("localhost", 8090);
+            System.out.println("Trying to start transport_management on mport = " + mport);
+            transport_management = new TSocket("localhost", mport);
             transport_management.open();
 
             TProtocol protocol_password = new TBinaryProtocol(transport_password);

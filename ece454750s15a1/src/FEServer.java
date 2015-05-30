@@ -23,6 +23,46 @@ public class FEServer {
     public static FEManagementHandler handler_management;
     public static FEManagement.Processor processor_management;
 
+    public static String host;
+    public static Integer pport;
+    public static Integer mport;
+    public static Integer ncores;
+    // TODO: fix this to be more than one, csv'd by comma and colon.
+    public static String seeds;
+
+    private static void helpMenu() {
+        System.out.println("java ece454750s15a1.FEServer");
+        System.out.println("-host: name of the host on which this process will run");
+        System.out.println("-pport: port number for A1Password Service");
+        System.out.println("-mport: port number for A1Management Service");
+        System.out.println("-ncores: number of cores available to the process");
+        System.out.println("-seeds: CSV list of host:port pairs in FE nodes that are seeds.");
+        System.out.println("Seed ports are in A1Management service");
+    }
+
+
+    public static void parseArgs (String [] args) {
+        for(int i = 0; i < args.length - 1; i++) {
+            System.out.println("[feserver] args[" + i + "] = " + args[i]);
+            String args_to_check = args[i];
+            if(args_to_check.equals("-host")) {
+                host = args[i + 1];
+            }
+            else if(args_to_check.equals("-pport")) {
+                pport = Integer.parseInt(args[i + 1]);
+            }
+            else if(args_to_check.equals("-mport")) {
+                mport = Integer.parseInt(args[i + 1]);
+            }
+            else if(args_to_check.equals("-ncores")) {
+                ncores = Integer.parseInt(args[i + 1]);
+            }
+            else if(args_to_check.equals("-seeds")) {
+                seeds = args[i + 1];
+            }
+        }
+    }
+
     public static void main(String[] args) {
         try{
             handler_password = new FEPasswordHandler();
@@ -45,10 +85,17 @@ public class FEServer {
                 }
             };
 
+            if (args.length == 0) {
+                System.out.print("Usage:");
+                helpMenu();
+            } else {
+                FEServer.parseArgs(args);
+            }
+
+            //contactFESeed();
+
             new Thread(simple_management).start();
             new Thread(simple_password).start();
-
-            contactFESeed();
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -58,7 +105,7 @@ public class FEServer {
 
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
-            TServerTransport serverTransport = new TServerSocket(9090);
+            TServerTransport serverTransport = new TServerSocket(pport);
             TServer server = new TSimpleServer(
                     new Args(serverTransport).processor(processor_password));
 
@@ -72,7 +119,7 @@ public class FEServer {
 
     public static void simple_management(FEManagement.Processor processor_management) {
         try {
-            TServerTransport serverTransport = new TServerSocket(8090);
+            TServerTransport serverTransport = new TServerSocket(mport);
             TServer server = new TSimpleServer(
                     new Args(serverTransport).processor(processor_management));
 
