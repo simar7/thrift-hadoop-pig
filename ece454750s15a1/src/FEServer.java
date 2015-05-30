@@ -33,7 +33,6 @@ public class FEServer {
     public static Integer pport;
     public static Integer mport;
     public static Integer ncores;
-    // TODO: fix this to be more than one, csv'd by comma and colon.
     public static String seed_string;
     public static List<String> seed_list;
     public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);

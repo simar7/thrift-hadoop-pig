@@ -14,6 +14,8 @@ import java.lang.Exception;
 import java.lang.Override;
 import java.lang.Runnable;
 import java.lang.Thread;
+import java.util.HashMap;
+import java.util.List;
 
 public class BEServer {
 
@@ -27,8 +29,9 @@ public class BEServer {
     public static Integer pport;
     public static Integer mport;
     public static Integer ncores;
-    // TODO: fix this to be more than one, csv'd by comma and colon.
-    public static String seeds;
+    public static String seed_string;
+    public static List<String> seed_list;
+    public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);
 
     private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
@@ -41,33 +44,29 @@ public class BEServer {
     }
 
     public static void parseArgs (String [] args) {
-        for(int i = 0; i < args.length - 1; i++) {
+        for (int i = 0; i < args.length - 1; i++) {
             //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
-            if(args_to_check.equals("-host")) {
+            if (args_to_check.equals("-host")) {
                 host = args[i + 1];
-            }
-            else if(args_to_check.equals("-pport")) {
+            } else if (args_to_check.equals("-pport")) {
                 pport = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-mport")) {
+            } else if (args_to_check.equals("-mport")) {
                 mport = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-ncores")) {
+            } else if (args_to_check.equals("-ncores")) {
                 ncores = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-seeds")) {
+            } else if (args_to_check.equals("-seeds")) {
                 seed_string = args[i + 1];
-                String [] seeds_comma_delim = seed_string.split(",");
+                String[] seeds_comma_delim = seed_string.split(",");
                 for (String seed_pair : seeds_comma_delim) {
-                    String [] seeds_colon_delim = seed_pair.split(":");
-                    for(int j = 0; j < seeds_colon_delim.length - 1; j++) {
+                    String[] seeds_colon_delim = seed_pair.split(":");
+                    for (int j = 0; j < seeds_colon_delim.length - 1; j++) {
                         seed_map.put(Integer.parseInt(seeds_colon_delim[j + 1]), seeds_colon_delim[j]);
                     }
                 }
             }
         }
-
+    }
 
     public static void main(String[] args) {
         try{
