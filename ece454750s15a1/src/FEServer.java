@@ -145,7 +145,7 @@ public class FEServer {
             FEManagement.Client client_management = new FEManagement.Client(protocol);
 
             // FIXME: dont hardcode set it to its own port numbers
-            boolean joinResult = client_management.joinCluster("localhost", 9090, 9091, 2);
+            boolean joinResult = client_management.joinCluster("FEServer", "localhost", 9090, 9091, 2);
             if(joinResult) {
                 System.out.println("The FE Server was added to the cluster.");
             } else {

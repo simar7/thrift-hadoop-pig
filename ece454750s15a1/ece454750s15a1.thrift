@@ -67,10 +67,11 @@ service FEManagement {
                      the processing cluster.
      */
     bool joinCluster (
-        1: string host,
-        2: int32_t pport,
-        3: int32_t mport,
-        4: int32_t ncores
+        1: string nodeName,
+        2: string host,
+        3: int32_t pport,
+        4: int32_t mport,
+        5: int32_t ncores
     )
     
     /*

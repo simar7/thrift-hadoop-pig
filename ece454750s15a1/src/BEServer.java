@@ -92,11 +92,12 @@ public class BEServer {
                 }
             };
 
-            contactFESeed();
+
 
             new Thread(simple_management).start();
             new Thread(simple_password).start();
 
+            contactFESeed();
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -140,12 +141,14 @@ public class BEServer {
             TProtocol protocol = new TBinaryProtocol(transport);
             FEManagement.Client client_management = new FEManagement.Client(protocol);
 
-            boolean joinResult = client_management.joinCluster("localhost", pport, mport, ncores);
+            boolean joinResult = client_management.joinCluster("BEServer", "localhost", pport, mport, ncores);
             if(joinResult) {
                 System.out.println("[BEServer] Successfully added BEServer to cluster.");
             } else {
                 System.out.println("[BEServer] Failed to add BEServer to cluster.");
             }
+
+            transport.close();
 
         } catch (Exception e) {
             e.printStackTrace();
