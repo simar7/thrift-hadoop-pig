@@ -75,7 +75,7 @@ public class BEServer {
                 System.out.print("Usage:");
                 helpMenu();
             } else {
-                System.out.println("Parsing args now..");
+                System.out.println("[BEServer] Parsing args now..");
                 BEServer.parseArgs(args);
             }
 
@@ -92,11 +92,11 @@ public class BEServer {
                 }
             };
 
+            contactFESeed();
 
             new Thread(simple_management).start();
             new Thread(simple_password).start();
 
-            //contactFESeed();
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -138,16 +138,13 @@ public class BEServer {
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);
-            BEManagement.Client client_management = new BEManagement.Client(protocol);
+            FEManagement.Client client_management = new FEManagement.Client(protocol);
 
-            // TODO : Parse args into a nice package before sending it to the FEManagementHandler.java
-
-            // FIXME: dont hardcode
-            boolean joinResult = client_management.joinCluster("localhost", 9090, 9091, 2);
+            boolean joinResult = client_management.joinCluster("localhost", pport, mport, ncores);
             if(joinResult) {
-                System.out.println("The BE Server was added to the cluster.");
+                System.out.println("[BEServer] Successfully added BEServer to cluster.");
             } else {
-                System.out.println("The BE Server was NOT added to the cluster.");
+                System.out.println("[BEServer] Failed to add BEServer to cluster.");
             }
 
         } catch (Exception e) {

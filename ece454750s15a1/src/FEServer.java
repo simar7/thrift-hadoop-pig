@@ -43,7 +43,7 @@ public class FEServer {
 
     public static void parseArgs (String [] args) {
         for(int i = 0; i < args.length - 1; i++) {
-            System.out.println("[feserver] args[" + i + "] = " + args[i]);
+            //System.out.println("[feserver] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
             if(args_to_check.equals("-host")) {
                 host = args[i + 1];
@@ -65,26 +65,6 @@ public class FEServer {
 
     public static void main(String[] args) {
         try{
-            handler_password = new FEPasswordHandler();
-            processor_password = new FEPassword.Processor(handler_password);
-
-            handler_management = new FEManagementHandler();
-            processor_management = new FEManagement.Processor(handler_management);
-
-            Runnable simple_password = new Runnable() {
-                @Override
-                public void run() {
-                    simple_password(processor_password);
-                }
-            };
-
-            Runnable simple_management = new Runnable() {
-                @Override
-                public void run() {
-                    simple_management(processor_management);
-                }
-            };
-
             if (args.length == 0) {
                 System.out.print("Usage:");
                 helpMenu();
@@ -94,22 +74,44 @@ public class FEServer {
 
             //contactFESeed();
 
+
+            // If this FEServer not a seed.
+            if (pport != null) {
+                handler_password = new FEPasswordHandler();
+                processor_password = new FEPassword.Processor(handler_password);
+                Runnable simple_password = new Runnable() {
+                    @Override
+                    public void run() {
+                        simple_password(processor_password);
+                    }
+                };
+                new Thread(simple_password).start();
+            }
+
+            handler_management = new FEManagementHandler();
+            processor_management = new FEManagement.Processor(handler_management);
+            Runnable simple_management = new Runnable() {
+                @Override
+                public void run() {
+                    simple_management(processor_management);
+                }
+            };
             new Thread(simple_management).start();
-            new Thread(simple_password).start();
+
 
         } catch (Exception x) {
             x.printStackTrace();
         }
     }
 
-
+    // Only executed if it's a FEServer. Not run for FESeeds.
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
             TServerTransport serverTransport = new TServerSocket(pport);
             TServer server = new TSimpleServer(
                     new Args(serverTransport).processor(processor_password));
 
-            System.out.println("Starting the simple password server...");
+            System.out.println("Starting the FEServer password iface at pport = " + pport);
             server.serve();
 
         } catch (Exception e) {
@@ -123,14 +125,14 @@ public class FEServer {
             TServer server = new TSimpleServer(
                     new Args(serverTransport).processor(processor_management));
 
-            System.out.println("Starting the simple management server...");
+            System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
             server.serve();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // This fucntion sends stuff to the servers via the handlers.
+    // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
         try {
             TTransport transport;
@@ -138,10 +140,9 @@ public class FEServer {
             transport = new TSocket("localhost", 9999);
             transport.open();
 
-            TProtocol protocol = new TBinaryProtocol(transport);
-            BEManagement.Client client_management = new BEManagement.Client(protocol);
-
             // TODO : Parse args into a nice package before sending it to the FEManagementHandler.java
+            TProtocol protocol = new TBinaryProtocol(transport);
+            FEManagement.Client client_management = new FEManagement.Client(protocol);
 
             // FIXME: dont hardcode set it to its own port numbers
             boolean joinResult = client_management.joinCluster("localhost", 9090, 9091, 2);
@@ -152,6 +153,7 @@ public class FEServer {
             }
 
         } catch (Exception e) {
+            e.getLocalizedMessage();
             e.printStackTrace();
         }
 
