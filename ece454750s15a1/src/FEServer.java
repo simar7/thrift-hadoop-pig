@@ -104,7 +104,26 @@ public class FEServer {
         }
     }
 
+    public static void simple_management(FEManagement.Processor processor_management) {
+        try {
+            TServerTransport serverTransport = new TServerSocket(mport);
+            TServer server = new TSimpleServer(
+                    new Args(serverTransport).processor(processor_management));
+
+            System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
+            server.serve();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     // Only executed if it's a FEServer. Not run for FESeeds.
+    /*
+        Upon receiving a request from client:
+            1) Query the cluster list to find a BE.
+            2) Forward request to BE.
+     */
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
             TServerTransport serverTransport = new TServerSocket(pport);
@@ -114,19 +133,6 @@ public class FEServer {
             System.out.println("Starting the FEServer password iface at pport = " + pport);
             server.serve();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void simple_management(FEManagement.Processor processor_management) {
-        try {
-            TServerTransport serverTransport = new TServerSocket(mport);
-            TServer server = new TSimpleServer(
-                    new Args(serverTransport).processor(processor_management));
-
-            System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
-            server.serve();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -43,23 +43,32 @@ public class FEManagementHandler implements FEManagement.Iface {
 
     // Join Cluster Interface
     public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException{
-        if((hostCoreMap.put(host, ncores) == null) || (portsMap.put(pport, mport) == null)) {
-            System.out.println("The [" + nodeName + "]" + " was NOT added to the cluster");
+
+        Integer hcmp_retval = hostCoreMap.put(host, ncores);
+        Integer pmmp_retval = portsMap.put(pport, mport);
+
+        // Should never get hit assuming there are unique nodes in the system.
+        if( (hcmp_retval != null) || (pmmp_retval != null) ) {
+            System.out.println("The [" + nodeName + "]" + " was a dupe.");
 
             // Debug info
             System.out.println("host, pport, mport, ncores = " + host + " " + pport + " " + mport + " " + " " + ncores);
             for (ConcurrentHashMap.Entry<String, Integer> entry : hostCoreMap.entrySet()) {
-                String key = entry.getKey().toString();;
+                String key = entry.getKey().toString();
                 Integer value = entry.getValue();
-                System.out.println("key, " + key + " value " + value );
+                System.out.println("key, " + key + " value " + value);
             }
 
-            return true;
+            for (ConcurrentHashMap.Entry<Integer, Integer> entry : portsMap.entrySet()) {
+                String key = entry.getKey().toString();
+                Integer value = entry.getValue();
+                System.out.println("key, " + key + " value " + value);
+            }
+            return false;
         }
 
         System.out.println("The [" + nodeName + "]" + " was added to the cluster");
-
-        return false;
+        return true;
     }
 
 
