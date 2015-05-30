@@ -15,11 +15,15 @@ import java.lang.Exception;
 import java.lang.Integer;
 import java.lang.Override;
 import java.lang.Runnable;
+import java.lang.String;
 import java.lang.System;
 import java.lang.Thread;
+import java.util.*;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class FEServer {
 
@@ -35,6 +39,7 @@ public class FEServer {
     public static Integer ncores;
     public static String seed_string;
     public static List<String> seed_list;
+    // Key:Value <=> PortNumber:HostName <=> 9999:localhost
     public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);
 
     private static void helpMenu() {
@@ -101,7 +106,6 @@ public class FEServer {
 
             //contactFESeed();
 
-
             // If this FEServer not a seed.
             if (pport != null) {
                 handler_password = new FEPasswordHandler();
@@ -149,6 +153,17 @@ public class FEServer {
         }
     }
 
+    /* Randomly pick an FESeed to connect to and ask for BEServer details.
+    public static String [] pickRandomSeed() {
+        Random       random    = new Random();
+        List<Integer> keys      = new ArrayList<Integer>(seed_map.entrySet());
+        Integer      randomKey = Integer.parseInt((keys.get(random.nextInt(keys.size()))));
+        String       value     = seed_map.get(randomKey);
+
+        String [] randomFESeedString = {randomKey, value};
+        return (randomFESeedString);
+    }
+    */
 
     // Only executed if it's a FEServer. Not run for FESeeds.
     /*
@@ -156,16 +171,33 @@ public class FEServer {
             1) Query the cluster list to find a BE.
             2) Forward request to BE.
     */
+
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
+            //ArrayList<String> randomSeedPair = pickRandomSeed();
 
+            // FIXME: Fix to connect to a random FESeed to get BEServer details.
+            // FIXME: Change to a port from the seed_map
+            System.out.println("[FEServer] Requesting a BEServer from FESeed to forward requests to...");
+            TTransport transport_management_seed;
+            transport_management_seed = new TSocket("localhost", 9999);
+            transport_management_seed.open();
+
+            TProtocol protocol_management_seed = new TBinaryProtocol(transport_management_seed);
+            FEManagement.Client client_management_seed = new FEManagement.Client(protocol_management_seed);
+
+            requestBEServer(client_management_seed);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private static void requestBEServer(FEManagement.Client client_management_seed) {
+        // Add code to call getBEServer inside of FEManagementHandler.java
+    }
 
+    private static
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
         try {

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class FEManagementHandler implements FEManagement.Iface {
@@ -17,9 +18,17 @@ public class FEManagementHandler implements FEManagement.Iface {
     private PerfCounters perfList;
     private List<String> hostList;
     private List<String> groupMembers;
-    private ConcurrentHashMap<String, Integer> hostCoreMap;
-    private ConcurrentHashMap<Integer, Integer> portsMap;
+    //private ConcurrentHashMap<String, Integer> hostCoreMap;
+    //private ConcurrentHashMap<Integer, Integer> portsMap;
 
+    public class clusterEntity {
+        public String  nodeName;
+        public Integer numCores;
+        public Integer passwordPort;
+        public Integer managementPort;
+    }
+
+    private CopyOnWriteArrayList<clusterEntity> clusterList = new CopyOnWriteArrayList<clusterEntity>();
 
     public FEManagementHandler() {
         perfList = new PerfCounters();
@@ -44,6 +53,14 @@ public class FEManagementHandler implements FEManagement.Iface {
     // Join Cluster Interface
     public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException{
 
+        // Add incoming stuff to the ConcurrentList.
+
+
+        System.out.println("The [" + nodeName + "]" + " was added to the cluster");
+        return true;
+
+        // Old logic that relies on ConcurrentHashMaps, not really useful when running on single machine with many BEs.
+        /*
         Integer hcmp_retval = hostCoreMap.put(host, ncores);
         Integer pmmp_retval = portsMap.put(pport, mport);
 
@@ -66,9 +83,13 @@ public class FEManagementHandler implements FEManagement.Iface {
             }
             return false;
         }
+        */
+    }
 
-        System.out.println("The [" + nodeName + "]" + " was added to the cluster");
-        return true;
+    public String [] getBEServer() {
+        // Add logic to retrieve an appropiate clusterEntity from the concurrentArrayList.
+        // Add logic to return a BE that is most suitable for the job (look at cores)
+
     }
 
 
