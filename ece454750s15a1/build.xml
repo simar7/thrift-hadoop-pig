@@ -155,7 +155,7 @@
         <echo>ece454750s15a1 FESeed</echo>
         <java classname="FEServer" fork="true"
               classpathref="ece454750s15a1.classpath" failonerror="true">
-            <arg line="-host localhost -mport 9999 -ncores 2 -seeds localhost:9999"/>
+            <arg line="-host localhost -mport 9999 -ncores 2 -seeds localhost:9999,localhost:19999"/>
         </java>
     </target>
 

@@ -10,10 +10,16 @@ import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
+import java.lang.*;
 import java.lang.Exception;
+import java.lang.Integer;
 import java.lang.Override;
 import java.lang.Runnable;
+import java.lang.System;
 import java.lang.Thread;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 
 public class FEServer {
 
@@ -28,7 +34,9 @@ public class FEServer {
     public static Integer mport;
     public static Integer ncores;
     // TODO: fix this to be more than one, csv'd by comma and colon.
-    public static String seeds;
+    public static String seed_string;
+    public static List<String> seed_list;
+    public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);
 
     private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
@@ -43,7 +51,7 @@ public class FEServer {
 
     public static void parseArgs (String [] args) {
         for(int i = 0; i < args.length - 1; i++) {
-            //System.out.println("[feserver] args[" + i + "] = " + args[i]);
+            //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
             if(args_to_check.equals("-host")) {
                 host = args[i + 1];
@@ -58,9 +66,29 @@ public class FEServer {
                 ncores = Integer.parseInt(args[i + 1]);
             }
             else if(args_to_check.equals("-seeds")) {
-                seeds = args[i + 1];
+                seed_string = args[i + 1];
+                String [] seeds_comma_delim = seed_string.split(",");
+                for (String seed_pair : seeds_comma_delim) {
+                    String [] seeds_colon_delim = seed_pair.split(":");
+                    for(int j = 0; j < seeds_colon_delim.length - 1; j++) {
+                        seed_map.put(Integer.parseInt(seeds_colon_delim[j + 1]), seeds_colon_delim[j]);
+                    }
+                }
             }
         }
+
+        /* Debug info. HashMap is reversed.
+           Only print for FESeed.
+        if (pport == null) {
+            System.out.println("[FESeed] seed map for FESeeds");
+            for (Map.Entry<Integer, String> entry : seed_map.entrySet()) {
+                Integer key = entry.getKey();
+                String value = entry.getValue();
+                System.out.println("[FESeed] key, " + key + " value " + value);
+            }
+        }
+        */
+
     }
 
     public static void main(String[] args) {
@@ -110,7 +138,12 @@ public class FEServer {
             TServer server = new TSimpleServer(
                     new Args(serverTransport).processor(processor_management));
 
-            System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
+            if (pport == null) {
+                System.out.println("[FESeed] Starting the FESeed management iface at mport = " + mport);
+            } else {
+                System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
+            }
+
             server.serve();
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,20 +156,16 @@ public class FEServer {
         Upon receiving a request from client:
             1) Query the cluster list to find a BE.
             2) Forward request to BE.
-     */
+    */
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
-            TServerTransport serverTransport = new TServerSocket(pport);
-            TServer server = new TSimpleServer(
-                    new Args(serverTransport).processor(processor_password));
 
-            System.out.println("Starting the FEServer password iface at pport = " + pport);
-            server.serve();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
@@ -159,7 +188,6 @@ public class FEServer {
             }
 
         } catch (Exception e) {
-            e.getLocalizedMessage();
             e.printStackTrace();
         }
 

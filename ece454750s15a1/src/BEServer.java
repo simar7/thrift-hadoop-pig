@@ -42,7 +42,7 @@ public class BEServer {
 
     public static void parseArgs (String [] args) {
         for(int i = 0; i < args.length - 1; i++) {
-            //System.out.println("[beserver] args[" + i + "] = " + args[i]);
+            //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
             if(args_to_check.equals("-host")) {
                 host = args[i + 1];
@@ -57,10 +57,17 @@ public class BEServer {
                 ncores = Integer.parseInt(args[i + 1]);
             }
             else if(args_to_check.equals("-seeds")) {
-                seeds = args[i + 1];
+                seed_string = args[i + 1];
+                String [] seeds_comma_delim = seed_string.split(",");
+                for (String seed_pair : seeds_comma_delim) {
+                    String [] seeds_colon_delim = seed_pair.split(":");
+                    for(int j = 0; j < seeds_colon_delim.length - 1; j++) {
+                        seed_map.put(Integer.parseInt(seeds_colon_delim[j + 1]), seeds_colon_delim[j]);
+                    }
+                }
             }
         }
-    }
+
 
     public static void main(String[] args) {
         try{
