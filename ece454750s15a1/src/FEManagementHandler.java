@@ -18,16 +18,16 @@ public class FEManagementHandler implements FEManagement.Iface {
     private PerfCounters perfList;
     private List<String> hostList;
     private List<String> groupMembers;
-    private CopyOnWriteArrayList<ClusterEntity> clusterList = new CopyOnWriteArrayList<ClusterEntity>();
+    private CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
 
-    public class ClusterEntity {
+    public class BEServerEntity {
         public String  nodeName;
         public Integer numCores;
         public String host;
         public Integer passwordPort;
         public Integer managementPort;
 
-        public ClusterEntity() {
+        public BEServerEntity() {
             this.nodeName = "UNSET";
             this.numCores = null;
             this.host = "UNSET";
@@ -43,6 +43,28 @@ public class FEManagementHandler implements FEManagement.Iface {
             this.host = host;
         }
 
+        public String [] getBEHostNamePortNumber() {
+            String [] ArrRet = {this.host, this.passwordPort.toString()};
+            return ArrRet;
+        }
+
+        public String [] getBEHostNamePortNumberCores {
+            String [] ArrRet = {this.host, this.passwordPort.toString(), this.numCores};
+            return ArrRet;
+        }
+
+        public String getBEHostName() {
+            return this.host;
+        }
+
+        public int getBEManagementPortNumber() {
+            return this.managementPort;
+        }
+
+        public int getBEPasswordPortNumber() {
+            return this.passwordPort;
+        }
+
         public void __debug_showInfo() {
             System.out.println("nodeName = " + this.nodeName);
             System.out.println("host = " + this.host);
@@ -50,6 +72,32 @@ public class FEManagementHandler implements FEManagement.Iface {
             System.out.println("mport = " + this.managementPort);
             System.out.println("numCores = " + this.numCores);
         }
+
+    }
+
+    public List<String> getTheBestPossibleBEServer() {
+            int maxCoresFound = 0;
+            String bestBEhostName = "";
+            String bestBEPortNumber = "";
+
+            /*  Uh... I don't know of a better way to do it.
+                hostNamePortNumberCores[0] = hostName of BEServer
+                hostNamePortNumberCores[1] = PortNumber of BEServer
+                hostNamePortNumberCores[2] = Cores of BEServer
+             */
+            for(int node = 0; node < BEServerList.size(); node++) {
+                String [] hostNamePortNumberCores = BEServerList.get(node).getBEHostNamePortNumberCores();
+                // Simple core based logic to return the highest core'd BEServer.
+                // TODO: Add logic based on timestamps when BEServer last joined.
+                if (hostNamePortNumberCores[2] >= maxCoresFound) {
+                    bestBEhostName = hostNamePortNumberCores[0];
+                    bestBEPortNumber = hostNamePortNumberCores[1];
+                    maxCoresFound = Integer.parseInt(hostNamePortNumberCores[2]);
+                }
+            }
+        List<String> retList = new ArrayList<String>();
+        retList.addAll(bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound));
+        return retList;
     }
 
     public FEManagementHandler() {
@@ -83,9 +131,13 @@ public class FEManagementHandler implements FEManagement.Iface {
         return true;
     }
 
-    public void getBEServer() {
-        // Add logic to retrieve an appropiate clusterEntity from the concurrentArrayList.
-        // Add logic to return a BE that is most suitable for the job (look at cores)
+    public List<String> getBEServer() {
+        // chosenBEServer[0] = hostName of BEServer
+        // chosenBEServer[1] = PortNumber of BEServer
+        // chosenBEServer[2] = Cores of BEServer
+
+        List<String> chosenBEServer = getTheBestPossibleBEServer();
+        return chosenBEServer;
     }
 
 }

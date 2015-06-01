@@ -38,9 +38,40 @@ public class FEServer {
     public static Integer mport;
     public static Integer ncores;
     public static String seed_string;
-    public static List<String> seed_list;
-    // Key:Value <=> PortNumber:HostName <=> 9999:localhost
-    public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);
+
+    public static class SeedEntity {
+        public String  seedHostName;
+        public Integer seedPort;
+
+        public  SeedEntity() {
+            this.seedHostName = "UNSET";
+            this.seedPort = null;
+        }
+
+        public void setEntityFields(String seedHostName, int port) {
+            this.seedHostName = seedHostName;
+            this.seedPort = port;
+        }
+
+        public String [] getEntityFields() {
+            String [] seedArrRet = {this.seedHostName, this.seedPort.toString()};
+            return seedArrRet;
+        }
+
+        public String getSeedHostName() {
+            return this.seedHostName;
+        }
+
+        public int getSeedPortNumber() {
+            return this.seedPort;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("seedHostName = " + this.seedHostName);
+            System.out.println("seedPort = " + this.seedPort);
+        }
+    }
+    public static List<SeedEntity> seedEntityList = new ArrayList<SeedEntity>();
 
     private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
@@ -150,30 +181,51 @@ public class FEServer {
 
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
-            //ArrayList<String> randomSeedPair = pickRandomSeed();
 
-            // FIXME: Fix to connect to a random FESeed to get BEServer details.
-            // FIXME: Change to a port from the seed_map
-            System.out.println("[FEServer] Requesting a BEServer from FESeed to forward requests to...");
+            // Get a random seed from the seedEntityList to inform about arrival.
+            SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
+
+            // Part 1: FEServer connects to FESeed. (FEServer = client, FESeed = server)
+            System.out.println("[FEServer] Requesting a BEServer from FESeed...");
             TTransport transport_management_seed;
-            transport_management_seed = new TSocket("localhost", 9999);
+            transport_management_seed = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
             transport_management_seed.open();
 
             TProtocol protocol_management_seed = new TBinaryProtocol(transport_management_seed);
             FEManagement.Client client_management_seed = new FEManagement.Client(protocol_management_seed);
 
-            requestBEServer(client_management_seed);
+            // chosenBEServer.get(0) = hostName of BEServer to reach to.
+            // chosenBEServer.get(1) = PortNumber of BEServer to reach to.
+            // chosenBEServer.get(2) = Cores of BEServer to reach to.
+            List<String> chosenBEServer = new ArrayList<String>();
+            chosenBEServer = requestBEServer(client_management_seed);
+
+            // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
+            System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
+            TTransport transport_management_beserver;
+            transport_management_beserver = new TSocket(chosenBEServer.get(0), chosenBEServer.get(1));
+            transport_management_beserver.open();
+
+            TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
+            BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
+
+            // Part 3: Call functions that handle password management within BEServer.
+
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void requestBEServer(FEManagement.Client client_management_seed) {
+    private static List<String> requestBEServer(FEManagement.Client client_management_seed) {
         // Add code to call getBEServer inside of FEManagementHandler.java
+        List<String> chosenBEServer = new ArrayList<String>();
+        chosenBEServer = client_management_seed.getBEServer();
+        return chosenBEServer;
     }
 
 
+    // TODO: Evaluate the need for this. Don't think we need this.
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
         try {
