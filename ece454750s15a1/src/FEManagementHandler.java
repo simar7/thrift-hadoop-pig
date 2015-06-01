@@ -46,8 +46,8 @@ public class FEManagementHandler implements FEManagement.Iface {
         public void __debug_showInfo() {
             System.out.println("nodeName = " + this.nodeName);
             System.out.println("host = " + this.host);
-            System.out.println("pport = " + this.pport);
-            System.out.println("mport = " + this.mport);
+            System.out.println("pport = " + this.passwordPort);
+            System.out.println("mport = " + this.managementPort);
             System.out.println("numCores = " + this.numCores);
         }
     }
