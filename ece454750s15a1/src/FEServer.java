@@ -124,7 +124,7 @@ public class FEServer {
 
             //contactFESeed();
 
-            // If this FEServer not a seed.
+            // this is an FEServer
             if (pport != null) {
                 handler_password = new FEPasswordHandler();
                 processor_password = new FEPassword.Processor(handler_password);
@@ -136,17 +136,18 @@ public class FEServer {
                 };
                 new Thread(simple_password).start();
             }
-
-            handler_management = new FEManagementHandler();
-            processor_management = new FEManagement.Processor(handler_management);
-            Runnable simple_management = new Runnable() {
-                @Override
-                public void run() {
-                    simple_management(processor_management);
-                }
-            };
-            new Thread(simple_management).start();
-
+            // this is an FESeed
+            else { // TODO: Do we actually need a Management port for Non-FE seeds?
+                handler_management = new FEManagementHandler();
+                processor_management = new FEManagement.Processor(handler_management);
+                Runnable simple_management = new Runnable() {
+                    @Override
+                    public void run() {
+                        simple_management(processor_management);
+                    }
+                };
+                new Thread(simple_management).start();
+            }
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -161,7 +162,7 @@ public class FEServer {
 
             if (pport == null) {
                 System.out.println("[FESeed] Starting the FESeed management iface at mport = " + mport);
-            } else {
+            } else { // TODO: Do we really need a management port for Non FESeed nodes?
                 System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
             }
 
@@ -180,6 +181,13 @@ public class FEServer {
 
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
+
+            // Part 0: Open a server socket to receive requests from the client.
+            System.out.println("[FEServer] Now listening to client requests on pport = " + pport);
+            TServerTransport serverTransport = new TServerSocket(pport);
+            TServer server = new TSimpleServer(
+                    new Args(serverTransport).processor(processor_password));
+            //server.serve();
 
             // Get a random seed from the seedEntityList to inform about arrival.
             SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
@@ -201,6 +209,8 @@ public class FEServer {
 
             // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
             System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
+            //System.out.println("[FEServer] Chosen BEServer details: hostname =  " + chosenBEServer.get(0) + " | port = " + chosenBEServer.get(1));
+
             TTransport transport_password_beserver;
             transport_password_beserver = new TSocket(chosenBEServer.get(0), Integer.parseInt(chosenBEServer.get(1)));
             transport_password_beserver.open();

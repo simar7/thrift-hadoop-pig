@@ -180,7 +180,7 @@
         <echo>ece454750s15a1 client simple:</echo>
         <java classname="A1Client"
               classpathref="ece454750s15a1.classpath" failonerror="true">
-            <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+            <arg line="-host localhost -pport 21236 -mport 21237 -ncores 2 -seeds localhost:9999"/>
         </java>
     </target>
 
@@ -204,7 +204,7 @@
         <echo>[ece454750s15a1] FEServer</echo>
         <java classname="FEServer" fork="true"
               classpathref="ece454750s15a1.classpath" failonerror="false">
-            <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+            <arg line="-host localhost -pport 21236 -mport 21237 -ncores 2 -seeds localhost:9999"/>
         </java>
     </target>
 

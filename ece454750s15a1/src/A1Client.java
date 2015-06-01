@@ -122,8 +122,8 @@ public class A1Client {
             TProtocol protocol_password = new TBinaryProtocol(transport_password);
             TProtocol protocol_management = new TBinaryProtocol(transport_management);
 
-            BEPassword.Client client_password = new BEPassword.Client(protocol_password);
-            BEManagement.Client client_management = new BEManagement.Client(protocol_management);
+            FEPassword.Client client_password = new FEPassword.Client(protocol_password);
+            FEManagement.Client client_management = new FEManagement.Client(protocol_management);
 
             perform_password(client_password);
             //perform_management(client_management);
@@ -139,7 +139,7 @@ public class A1Client {
     }
 
     // This fucntion sends stuff to the servers via the handlers.
-    private static void perform_password(BEPassword.Client client_password) throws TException {
+    private static void perform_password(FEPassword.Client client_password) throws TException {
 
         String passwordHash = client_password.hashPassword("password", (short) 10);
         System.out.println("Password Hash=" + passwordHash);
