@@ -2,6 +2,7 @@ import ece454750s15a1.*;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -184,10 +185,15 @@ public class FEServer {
 
             // Part 0: Open a server socket to receive requests from the client.
             System.out.println("[FEServer] Now listening to client requests on pport = " + pport);
-            TServerTransport serverTransport = new TServerSocket(pport);
-            TServer server = new TSimpleServer(
-                    new Args(serverTransport).processor(processor_password));
+            //TServerTransport serverTransport = new TServerSocket(pport);
+            //TServer server = new TSimpleServer(
+            //       new Args(serverTransport).processor(processor_password));
             //server.serve();
+
+            // Experiment 1: TThreadedPoolServer
+            TServerTransport serverTransport = new TServerSocket(pport);
+            TServer server = new TThreadPoolServer(
+                    new TThreadPoolServer.Args(serverTransport).processor(processor_password));
 
             // Get a random seed from the seedEntityList to inform about arrival.
             SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
@@ -221,6 +227,8 @@ public class FEServer {
             // Part 3: Call functions that handle password within BEServer.
             performPasswordRequestOnBE(client_password_beserver);
 
+            // FIXME: I think this needs to be on a seperate thread, currently this blocks everything.
+            server.serve();
 
         } catch (Exception e) {
             e.printStackTrace();

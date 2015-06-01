@@ -114,16 +114,18 @@ public class A1Client {
             transport_password = new TSocket("localhost", pport);
             transport_password.open();
 
+            /*
             TTransport transport_management;
             System.out.println("Trying to start transport_management on mport = " + mport);
             transport_management = new TSocket("localhost", mport);
             transport_management.open();
+            */
 
             TProtocol protocol_password = new TBinaryProtocol(transport_password);
-            TProtocol protocol_management = new TBinaryProtocol(transport_management);
+            // TProtocol protocol_management = new TBinaryProtocol(transport_management);
 
             FEPassword.Client client_password = new FEPassword.Client(protocol_password);
-            FEManagement.Client client_management = new FEManagement.Client(protocol_management);
+            // FEManagement.Client client_management = new FEManagement.Client(protocol_management);
 
             perform_password(client_password);
             //perform_management(client_management);
@@ -131,7 +133,7 @@ public class A1Client {
             // TODO: Implement better client logic to only close
             // when fully done.
             transport_password.close();
-            transport_management.close();
+            // transport_management.close();
 
         } catch (TException e) {
             e.printStackTrace();
