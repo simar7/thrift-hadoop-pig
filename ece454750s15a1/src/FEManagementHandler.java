@@ -18,23 +18,43 @@ public class FEManagementHandler implements FEManagement.Iface {
     private PerfCounters perfList;
     private List<String> hostList;
     private List<String> groupMembers;
-    //private ConcurrentHashMap<String, Integer> hostCoreMap;
-    //private ConcurrentHashMap<Integer, Integer> portsMap;
+    private CopyOnWriteArrayList<ClusterEntity> clusterList = new CopyOnWriteArrayList<ClusterEntity>();
 
-    public class clusterEntity {
+    public class ClusterEntity {
         public String  nodeName;
         public Integer numCores;
+        public String host;
         public Integer passwordPort;
         public Integer managementPort;
-    }
 
-    private CopyOnWriteArrayList<clusterEntity> clusterList = new CopyOnWriteArrayList<clusterEntity>();
+        public ClusterEntity() {
+            this.nodeName = "UNSET";
+            this.numCores = null;
+            this.host = "UNSET";
+            this.passwordPort = null;
+            this.managementPort = null;
+        }
+
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = pport;
+            this.managementPort = mport;
+            this.host = host;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("nodeName = " + this.nodeName);
+            System.out.println("host = " + this.host);
+            System.out.println("pport = " + this.pport);
+            System.out.println("mport = " + this.mport);
+            System.out.println("numCores = " + this.numCores);
+        }
+    }
 
     public FEManagementHandler() {
         perfList = new PerfCounters();
         hostList = new ArrayList<String>();
-        hostCoreMap = new ConcurrentHashMap<String, Integer>(100);
-        portsMap = new ConcurrentHashMap<Integer, Integer>(100);
         groupMembers = Arrays.asList("s244sing", "cpinn");
     }
 
@@ -51,46 +71,21 @@ public class FEManagementHandler implements FEManagement.Iface {
     // Other Interfaces
 
     // Join Cluster Interface
-    public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException{
-
+    public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException {
         // Add incoming stuff to the ConcurrentList.
+        ClusterEntity clusterEntity = new ClusterEntity();
+        clusterEntity.setEntityFields(nodeName, host, pport, mport, ncores);
+        clusterList.add(clusterEntity);
 
+        // clusterList.get(k).__debug_showInfo();
 
-        System.out.println("The [" + nodeName + "]" + " was added to the cluster");
+        System.out.println("[FESeed] The [" + nodeName + "]" + " was added to the cluster");
         return true;
-
-        // Old logic that relies on ConcurrentHashMaps, not really useful when running on single machine with many BEs.
-        /*
-        Integer hcmp_retval = hostCoreMap.put(host, ncores);
-        Integer pmmp_retval = portsMap.put(pport, mport);
-
-        // Should never get hit assuming there are unique nodes in the system.
-        if( (hcmp_retval != null) || (pmmp_retval != null) ) {
-            System.out.println("The [" + nodeName + "]" + " was a dupe.");
-
-            // Debug info
-            System.out.println("host, pport, mport, ncores = " + host + " " + pport + " " + mport + " " + " " + ncores);
-            for (ConcurrentHashMap.Entry<String, Integer> entry : hostCoreMap.entrySet()) {
-                String key = entry.getKey().toString();
-                Integer value = entry.getValue();
-                System.out.println("key, " + key + " value " + value);
-            }
-
-            for (ConcurrentHashMap.Entry<Integer, Integer> entry : portsMap.entrySet()) {
-                String key = entry.getKey().toString();
-                Integer value = entry.getValue();
-                System.out.println("key, " + key + " value " + value);
-            }
-            return false;
-        }
-        */
     }
 
-    public String [] getBEServer() {
+    public void getBEServer() {
         // Add logic to retrieve an appropiate clusterEntity from the concurrentArrayList.
         // Add logic to return a BE that is most suitable for the job (look at cores)
-
     }
-
 
 }

@@ -81,18 +81,6 @@ public class FEServer {
             }
         }
 
-        /* Debug info. HashMap is reversed.
-           Only print for FESeed.
-        if (pport == null) {
-            System.out.println("[FESeed] seed map for FESeeds");
-            for (Map.Entry<Integer, String> entry : seed_map.entrySet()) {
-                Integer key = entry.getKey();
-                String value = entry.getValue();
-                System.out.println("[FESeed] key, " + key + " value " + value);
-            }
-        }
-        */
-
     }
 
     public static void main(String[] args) {
@@ -153,18 +141,6 @@ public class FEServer {
         }
     }
 
-    /* Randomly pick an FESeed to connect to and ask for BEServer details.
-    public static String [] pickRandomSeed() {
-        Random       random    = new Random();
-        List<Integer> keys      = new ArrayList<Integer>(seed_map.entrySet());
-        Integer      randomKey = Integer.parseInt((keys.get(random.nextInt(keys.size()))));
-        String       value     = seed_map.get(randomKey);
-
-        String [] randomFESeedString = {randomKey, value};
-        return (randomFESeedString);
-    }
-    */
-
     // Only executed if it's a FEServer. Not run for FESeeds.
     /*
         Upon receiving a request from client:
@@ -197,7 +173,7 @@ public class FEServer {
         // Add code to call getBEServer inside of FEManagementHandler.java
     }
 
-    private static
+
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
         try {
