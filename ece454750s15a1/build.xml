@@ -142,6 +142,39 @@
         </parallel>
     </target>
 
+    <target name="step3" description="Run step3" depends="compile">
+        <parallel>
+            <echo>[ece454750s15a1] FESeed</echo>
+            <java classname="FEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="false">
+                <arg line="-host localhost -mport 9999 -ncores 2 -seeds localhost:9999"/>
+            </java>
+
+            <echo>[ece454750s15a1] BEServer</echo>
+            <sleep seconds="2"/>
+            <java classname="BEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="true">
+                <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+            </java>
+
+            <echo>[ece454750s15a1] FEServer</echo>
+            <sleep seconds="2" />
+            <java classname="FEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="false">
+                <arg line="-host localhost -pport 21236 -mport 21237 -ncores 2 -seeds localhost:9999"/>
+            </java>
+
+            <sequential>
+                <echo>[ece454750s15a1] A1Client</echo>
+                <sleep seconds="2"/>
+                <java classname="A1Client"
+                      classpathref="ece454750s15a1.classpath" failonerror="true">
+                    <arg line="-host localhost -pport 21236 -mport 21237 -ncores 2 -seeds localhost:9999"/>
+                </java>
+            </sequential>
+        </parallel>
+    </target>
+
     <!-- Individual entities -->
     <target name="client" description="Run a ece454750s15a1 client" depends="compile">
         <echo>ece454750s15a1 client simple:</echo>
@@ -167,22 +200,35 @@
         </java>
     </target>
 
+    <target name="FEServer" description="Run FEServer" depends="compile">
+        <echo>[ece454750s15a1] FEServer</echo>
+        <java classname="FEServer" fork="true"
+              classpathref="ece454750s15a1.classpath" failonerror="false">
+            <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+        </java>
+    </target>
 
     <!-- Group Targets -->
     <target name="servers" description="Run both BEServer and FEServer" depends="compile">
-        <sequential>
+        <parallel>
+            <echo>ece454750s15a1 FESeed</echo>
+            <java classname="FEServer" fork="true"
+                  classpathref="ece454750s15a1.classpath" failonerror="true">
+                <arg line="-host localhost -mport 9999 -ncores 2 -seeds localhost:9999,localhost:19999"/>
+            </java>
+
             <echo>[ece454750s15a1] BEServer</echo>
-            <java classname="BEServer" fork="true" timeout="10000"
+            <java classname="BEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false">
                 <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
             </java>
 
             <echo>[ece454750s15a1] FEServer</echo>
-            <java classname="FEServer" fork="true" timeout="10000"
+            <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false">
                 <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
             </java>
-        </sequential>
+        </parallel>
     </target>
 
     <target name="clean">

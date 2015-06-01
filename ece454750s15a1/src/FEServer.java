@@ -85,33 +85,32 @@ public class FEServer {
 
 
     public static void parseArgs (String [] args) {
-        for(int i = 0; i < args.length - 1; i++) {
+        for (int i = 0; i < args.length - 1; i++) {
             //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
-            if(args_to_check.equals("-host")) {
+            if (args_to_check.equals("-host")) {
                 host = args[i + 1];
-            }
-            else if(args_to_check.equals("-pport")) {
+            } else if (args_to_check.equals("-pport")) {
                 pport = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-mport")) {
+            } else if (args_to_check.equals("-mport")) {
                 mport = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-ncores")) {
+            } else if (args_to_check.equals("-ncores")) {
                 ncores = Integer.parseInt(args[i + 1]);
-            }
-            else if(args_to_check.equals("-seeds")) {
+            } else if (args_to_check.equals("-seeds")) {
                 seed_string = args[i + 1];
-                String [] seeds_comma_delim = seed_string.split(",");
+                String[] seeds_comma_delim = seed_string.split(",");
                 for (String seed_pair : seeds_comma_delim) {
-                    String [] seeds_colon_delim = seed_pair.split(":");
-                    for(int j = 0; j < seeds_colon_delim.length - 1; j++) {
-                        seed_map.put(Integer.parseInt(seeds_colon_delim[j + 1]), seeds_colon_delim[j]);
+                    String[] seeds_colon_delim = seed_pair.split(":");
+                    for (int j = 0; j < seeds_colon_delim.length - 1; j = j+2) {
+                        String seedHostName = seeds_colon_delim[j];
+                        int seedPortNumber = Integer.parseInt(seeds_colon_delim[j+1]);
+                        SeedEntity seed = new SeedEntity();
+                        seed.setEntityFields(seedHostName, seedPortNumber);
+                        seedEntityList.add(seed);
                     }
                 }
             }
         }
-
     }
 
     public static void main(String[] args) {
@@ -202,14 +201,15 @@ public class FEServer {
 
             // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
             System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
-            TTransport transport_management_beserver;
-            transport_management_beserver = new TSocket(chosenBEServer.get(0), chosenBEServer.get(1));
-            transport_management_beserver.open();
+            TTransport transport_password_beserver;
+            transport_password_beserver = new TSocket(chosenBEServer.get(0), Integer.parseInt(chosenBEServer.get(1)));
+            transport_password_beserver.open();
 
-            TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
-            BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
+            TProtocol protocol_password_beserver = new TBinaryProtocol(transport_password_beserver);
+            BEPassword.Client client_password_beserver = new BEPassword.Client(protocol_password_beserver);
 
-            // Part 3: Call functions that handle password management within BEServer.
+            // Part 3: Call functions that handle password within BEServer.
+            performPasswordRequestOnBE(client_password_beserver);
 
 
         } catch (Exception e) {
@@ -217,13 +217,29 @@ public class FEServer {
         }
     }
 
-    private static List<String> requestBEServer(FEManagement.Client client_management_seed) {
-        // Add code to call getBEServer inside of FEManagementHandler.java
-        List<String> chosenBEServer = new ArrayList<String>();
-        chosenBEServer = client_management_seed.getBEServer();
-        return chosenBEServer;
+    private static List<String> requestBEServer(FEManagement.Client client_management_seed) throws TException{
+        try {
+            List<String> chosenBEServer = new ArrayList<String>();
+            chosenBEServer = client_management_seed.getBEServer();
+            return chosenBEServer;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // should never get here.
+        return null;
     }
 
+    private static void performPasswordRequestOnBE(BEPassword.Client client_password_beserver) throws TException {
+
+        String passwordHash = client_password_beserver.hashPassword("password", (short) 10);
+        System.out.println("Password Hash=" + passwordHash);
+
+        boolean checkPassword = client_password_beserver.checkPassword("password", passwordHash);
+        System.out.println("Check Password PASS=" + checkPassword);
+
+        checkPassword = client_password_beserver.checkPassword("password_wrong", passwordHash);
+        System.out.println("Check Password FAIL=" + checkPassword);
+    }
 
     // TODO: Evaluate the need for this. Don't think we need this.
     // Only used if this is an actual FEServer and NOT a seed.

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Collections;
 
 
 public class FEManagementHandler implements FEManagement.Iface {
@@ -48,8 +49,8 @@ public class FEManagementHandler implements FEManagement.Iface {
             return ArrRet;
         }
 
-        public String [] getBEHostNamePortNumberCores {
-            String [] ArrRet = {this.host, this.passwordPort.toString(), this.numCores};
+        public String [] getBEHostNamePortNumberCores() {
+            String [] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
             return ArrRet;
         }
 
@@ -89,14 +90,15 @@ public class FEManagementHandler implements FEManagement.Iface {
                 String [] hostNamePortNumberCores = BEServerList.get(node).getBEHostNamePortNumberCores();
                 // Simple core based logic to return the highest core'd BEServer.
                 // TODO: Add logic based on timestamps when BEServer last joined.
-                if (hostNamePortNumberCores[2] >= maxCoresFound) {
+                if (Integer.parseInt(hostNamePortNumberCores[2]) >= maxCoresFound) {
                     bestBEhostName = hostNamePortNumberCores[0];
                     bestBEPortNumber = hostNamePortNumberCores[1];
                     maxCoresFound = Integer.parseInt(hostNamePortNumberCores[2]);
                 }
             }
         List<String> retList = new ArrayList<String>();
-        retList.addAll(bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound));
+        // retList.addAll(Arrays.asList(bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound)));
+        Collections.addAll(retList, bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound));
         return retList;
     }
 
@@ -121,9 +123,9 @@ public class FEManagementHandler implements FEManagement.Iface {
     // Join Cluster Interface
     public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException {
         // Add incoming stuff to the ConcurrentList.
-        ClusterEntity clusterEntity = new ClusterEntity();
-        clusterEntity.setEntityFields(nodeName, host, pport, mport, ncores);
-        clusterList.add(clusterEntity);
+        BEServerEntity beServerEntity = new BEServerEntity();
+        beServerEntity.setEntityFields(nodeName, host, pport, mport, ncores);
+        BEServerList.add(beServerEntity);
 
         // clusterList.get(k).__debug_showInfo();
 

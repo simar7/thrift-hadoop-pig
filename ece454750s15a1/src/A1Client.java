@@ -13,6 +13,8 @@ import java.lang.Runnable;
 import java.lang.Thread;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
+
 
 public class A1Client {
 
@@ -21,8 +23,40 @@ public class A1Client {
     public static Integer mport;
     public static Integer ncores;
     public static String seed_string;
-    public static List<String> seed_list;
-    public static HashMap<Integer, String> seed_map = new HashMap<Integer, String>(100);
+
+    public static class SeedEntity {
+        public String  seedHostName;
+        public Integer seedPort;
+
+        public  SeedEntity() {
+            this.seedHostName = "UNSET";
+            this.seedPort = null;
+        }
+
+        public void setEntityFields(String seedHostName, int port) {
+            this.seedHostName = seedHostName;
+            this.seedPort = port;
+        }
+
+        public String [] getEntityFields() {
+            String [] seedArrRet = {this.seedHostName, this.seedPort.toString()};
+            return seedArrRet;
+        }
+
+        public String getSeedHostName() {
+            return this.seedHostName;
+        }
+
+        public int getSeedPortNumber() {
+            return this.seedPort;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("seedHostName = " + this.seedHostName);
+            System.out.println("seedPort = " + this.seedPort);
+        }
+    }
+    public static List<SeedEntity> seedEntityList = new ArrayList<SeedEntity>();
 
 
     private static void helpMenu() {
@@ -53,8 +87,12 @@ public class A1Client {
                 String[] seeds_comma_delim = seed_string.split(",");
                 for (String seed_pair : seeds_comma_delim) {
                     String[] seeds_colon_delim = seed_pair.split(":");
-                    for (int j = 0; j < seeds_colon_delim.length - 1; j++) {
-                        seed_map.put(Integer.parseInt(seeds_colon_delim[j + 1]), seeds_colon_delim[j]);
+                    for (int j = 0; j < seeds_colon_delim.length - 1; j = j+2) {
+                        String seedHostName = seeds_colon_delim[j];
+                        int seedPortNumber = Integer.parseInt(seeds_colon_delim[j+1]);
+                        SeedEntity seed = new SeedEntity();
+                        seed.setEntityFields(seedHostName, seedPortNumber);
+                        seedEntityList.add(seed);
                     }
                 }
             }
