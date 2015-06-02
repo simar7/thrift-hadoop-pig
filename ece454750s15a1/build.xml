@@ -56,6 +56,9 @@
     <target name="test" depends="ece454750s15a1"/>
 
     <!-- target name="ece454750s15a1" description="Run the ece454750s15a1" -->
+    <!-- unfortunately ecelinux doesn't allow java heap to be increased without actually running the java program...
+    command to test in ecelinux is for example: java -Xmx128M -cp "ece454750s15a1.jar:../lib/*" BEServer -host ecelinux1 
+    -pport 51234 -mport 51235 -ncores 2 -seeds ecelinux1:9999 -->
     <target name="ece454750s15a1"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
