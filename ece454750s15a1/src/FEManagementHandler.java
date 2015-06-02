@@ -16,11 +16,6 @@ import java.util.Collections;
 
 public class FEManagementHandler implements FEManagement.Iface {
 
-    private PerfCounters perfList;
-    private List<String> hostList;
-    private List<String> groupMembers;
-    private CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
-
     public class BEServerEntity {
         public String  nodeName;
         public Integer numCores;
@@ -76,45 +71,58 @@ public class FEManagementHandler implements FEManagement.Iface {
 
     }
 
-    public List<String> getTheBestPossibleBEServer() {
-            int maxCoresFound = 0;
-            String bestBEhostName = "";
-            String bestBEPortNumber = "";
+    public class SeedEntity {
+        public String seedHostName;
+        public Integer seedPort;
 
-            /*  Uh... I don't know of a better way to do it.
-                hostNamePortNumberCores[0] = hostName of BEServer
-                hostNamePortNumberCores[1] = PortNumber of BEServer
-                hostNamePortNumberCores[2] = Cores of BEServer
-             */
-            for(int node = 0; node < BEServerList.size(); node++) {
-                String [] hostNamePortNumberCores = BEServerList.get(node).getBEHostNamePortNumberCores();
-                // Simple core based logic to return the highest core'd BEServer.
-                // TODO: Add logic based on timestamps when BEServer last joined.
-                if (Integer.parseInt(hostNamePortNumberCores[2]) >= maxCoresFound) {
-                    bestBEhostName = hostNamePortNumberCores[0];
-                    bestBEPortNumber = hostNamePortNumberCores[1];
-                    maxCoresFound = Integer.parseInt(hostNamePortNumberCores[2]);
-                }
-            }
-        List<String> retList = new ArrayList<String>();
-        // retList.addAll(Arrays.asList(bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound)));
-        Collections.addAll(retList, bestBEhostName, bestBEPortNumber, Integer.toString(maxCoresFound));
-        return retList;
+        public SeedEntity() {
+            this.seedHostName = "UNSET";
+            this.seedPort = null;
+        }
+
+        public void setEntityFields(String seedHostName, int port) {
+            this.seedHostName = seedHostName;
+            this.seedPort = port;
+        }
+
+        public String[] getEntityFields() {
+            String[] seedArrRet = {this.seedHostName, this.seedPort.toString()};
+            return seedArrRet;
+        }
+
+        public String getSeedHostName() {
+            return this.seedHostName;
+        }
+
+        public int getSeedPortNumber() {
+            return this.seedPort;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("seedHostName = " + this.seedHostName);
+            System.out.println("seedPort = " + this.seedPort);
+        }
     }
 
-    public FEManagementHandler() {
-        perfList = new PerfCounters();
-        hostList = new ArrayList<String>();
-        groupMembers = Arrays.asList("s244sing", "cpinn");
+    public  CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
+    public  CopyOnWriteArrayList<SeedEntity> seedList = new CopyOnWriteArrayList<SeedEntity>();
+
+    public FEManagementHandler(CopyOnWriteArrayList<SeedEntity> seedList, CopyOnWriteArrayList<BEServerEntity> BEServerList) {
+        this.BEServerList = BEServerList;
+        this.seedList = seedList;
     }
 
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
+        PerfCounters perfList = new PerfCounters();
         return perfList;
     }
 
     // Return group member list.
     public List<String> getGroupMembers() {
+        ArrayList<String> groupMembers = new ArrayList<>();
+        groupMembers.add("s244sing");
+        groupMembers.add("cpinn");
         return groupMembers;
     }
 
@@ -129,16 +137,7 @@ public class FEManagementHandler implements FEManagement.Iface {
 
         // clusterList.get(k).__debug_showInfo();
 
-        System.out.println("[FESeed] The [" + nodeName + "]" + " was added to the cluster");
+        System.out.println("[FEManagement] The [" + nodeName + "]" + " was added to the cluster");
         return true;
-    }
-
-    public List<String> getBEServer() {
-        // chosenBEServer[0] = hostName of BEServer
-        // chosenBEServer[1] = PortNumber of BEServer
-        // chosenBEServer[2] = Cores of BEServer
-
-        List<String> chosenBEServer = getTheBestPossibleBEServer();
-        return chosenBEServer;
     }
 }

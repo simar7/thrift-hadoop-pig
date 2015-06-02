@@ -11,10 +11,10 @@ import java.lang.System;
 public class BEPasswordHandler implements BEPassword.Iface {
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
-        System.out.println("Password = " + password + " " + "logRounds = " + logRounds);
+        System.out.println("[BEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
 
         String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
-        System.out.println("hashedString = " + hashedString);
+        System.out.println("[BEPasswordHandler] hashedString = " + hashedString);
         if (hashedString.length() != 0) {
             return hashedString;
         }
@@ -29,11 +29,11 @@ public class BEPasswordHandler implements BEPassword.Iface {
         try {
             boolean result = BCrypt.checkpw(password, hash);
             if (result) {
-                System.out.println("Password Matches.");
+                System.out.println("[BEPasswordHandler] Password Matches.");
                 return true;
             }
             else {
-                System.out.println("Password Mismatch");
+                System.out.println("[BEPasswordHandler] Password Mismatch");
                 return false;
             }
         } catch (Exception e) {

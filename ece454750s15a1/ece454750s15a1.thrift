@@ -74,8 +74,6 @@ service FEManagement {
         5: int32_t ncores
     )
 
-    list<string> getBEServer ()
-
     /*
         TODO: Periodic Learning Interface
         Description: This interface makes all other FE

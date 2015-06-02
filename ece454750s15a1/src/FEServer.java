@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FEServer {
 
@@ -74,9 +75,68 @@ public class FEServer {
         }
     }
 
-    public static List<SeedEntity> seedEntityList = new ArrayList<SeedEntity>();
+    public class BEServerEntity {
+        public String nodeName;
+        public Integer numCores;
+        public String host;
+        public Integer passwordPort;
+        public Integer managementPort;
 
-    // TODO: Construct a accessor method that gives all ports of seeds.
+        public BEServerEntity() {
+            this.nodeName = "UNSET";
+            this.numCores = null;
+            this.host = "UNSET";
+            this.passwordPort = null;
+            this.managementPort = null;
+        }
+
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = pport;
+            this.managementPort = mport;
+            this.host = host;
+        }
+
+        public String[] getBEHostNamePortNumber() {
+            String[] ArrRet = {this.host, this.passwordPort.toString()};
+            return ArrRet;
+        }
+
+        public String[] getBEHostNamePortNumberCores() {
+            String[] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
+            return ArrRet;
+        }
+
+        public int getBECores() {
+            return this.numCores;
+        }
+
+        public String getBEHostName() {
+            return this.host;
+        }
+
+        public int getBEManagementPortNumber() {
+            return this.managementPort;
+        }
+
+        public int getBEPasswordPortNumber() {
+            return this.passwordPort;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("nodeName = " + this.nodeName);
+            System.out.println("host = " + this.host);
+            System.out.println("pport = " + this.passwordPort);
+            System.out.println("mport = " + this.managementPort);
+            System.out.println("numCores = " + this.numCores);
+        }
+
+    }
+
+    public static CopyOnWriteArrayList<SeedEntity> seedEntityList = new CopyOnWriteArrayList<SeedEntity>();
+    public static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
+
     public static List<String> getAllSeedPorts() {
         List<String> seedPortList = new ArrayList<String>();
         for(int i = 0; i < seedEntityList.size(); i++) {
@@ -151,7 +211,7 @@ public class FEServer {
 
             //contactFESeed();
 
-            handler_password = new FEPasswordHandler();
+            handler_password = new FEPasswordHandler(BEServerList);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
@@ -162,7 +222,7 @@ public class FEServer {
             new Thread(simple_password).start();
 
             // TODO: Do we actually need a Management port for Non-FE seeds?
-            handler_management = new FEManagementHandler();
+            handler_management = new FEManagementHandler(seedEntityList, BEServerList);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -264,7 +324,7 @@ public class FEServer {
 
                 server.serve();
             } else { // This is FESeed
-                System.out.println("[FESeed] Password port doesn't in FESeed is not programmed.");
+                System.out.println("[FESeed] Password port in FESeed is not programmed.");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -281,12 +341,6 @@ public class FEServer {
         }
         // should never get here.
         return null;
-    }
-
-    private static void performPasswordRequestOnBE(List<String> chosenBEServer, BEPassword.Client client_password_beserver) throws TException {
-        // Call the FEPasswordHandler function.
-        // TODO: Find a way to get the values from the test client.
-        client_password_beserver.hashPassword("password", (short) 10);
     }
 
     // TODO: Evaluate the need for this. Don't think we need this.
