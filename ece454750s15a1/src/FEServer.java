@@ -22,6 +22,7 @@ import java.lang.Thread;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -74,6 +75,30 @@ public class FEServer {
     }
 
     public static List<SeedEntity> seedEntityList = new ArrayList<SeedEntity>();
+
+    // TODO: Construct a accessor method that gives all ports of seeds.
+    public static List<String> getAllSeedPorts() {
+        List<String> seedPortList = new ArrayList<String>();
+        for(int i = 0; i < seedEntityList.size(); i++) {
+            //System.out.println("[FEDEBUG] seedportlist = " + Integer.toString(seedEntityList.get(i).getSeedPortNumber()));
+            seedPortList.add(Integer.toString(seedEntityList.get(i).getSeedPortNumber()));
+        }
+        return seedPortList;
+    }
+
+    public static boolean checkIfSeedOrNot(Integer mport) {
+        List<String> seedPortList = getAllSeedPorts();
+        // System.out.println("mport = " + mport);
+
+        if(seedPortList.contains(Integer.toString(mport))) {
+            // System.out.println("its a seeeeed!");
+            return true;
+        }
+        else {
+            // System.out.println("its NOT a seeeeed!");
+            return false;
+        }
+    }
 
     private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
@@ -156,14 +181,15 @@ public class FEServer {
         try {
 
             // This is FESeed
-            if (pport == null) {
+            // FIXME: Change the check condition from this to mport == seedlist.
+            if (checkIfSeedOrNot(mport)) {
                 System.out.println("[FESeed] Starting the FESeed management iface at mport = " + mport);
             } else { // TODO: Do we really need a management port for Non FESeed nodes?
                 System.out.println("[FEServer] Starting the FEServer management iface at mport = " + mport);
             }
 
             // This is FESeed
-            if (pport == null) {
+            if (checkIfSeedOrNot(mport)) {
                 // Experiment 1: TThreadedPoolServer
                 TServerTransport serverTransport = new TServerSocket(mport);
                 TServer server = new TThreadPoolServer(
@@ -172,7 +198,7 @@ public class FEServer {
             }
 
             // This is FEServer
-            if (pport != null) {
+            if (!checkIfSeedOrNot(mport)) {
 
                 // Get a random seed from the seedEntityList to inform about arrival.
                 SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
@@ -193,19 +219,23 @@ public class FEServer {
                 List<String> chosenBEServer = new ArrayList<String>();
                 chosenBEServer = requestBEServer(client_management_seed);
 
-                // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
-                System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
                 //System.out.println("[FEServer] Chosen BEServer details: hostname =  " + chosenBEServer.get(0) + " | port = " + chosenBEServer.get(1));
 
+                // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
+
+                // Instantiate the transport between FEServer and BEServer
                 TTransport transport_password_beserver;
+                System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
                 transport_password_beserver = new TSocket(chosenBEServer.get(0), Integer.parseInt(chosenBEServer.get(1)));
                 transport_password_beserver.open();
 
+                // Instantiate the protocol between FEServer and FEPasswordHandler
                 TProtocol protocol_password_beserver = new TBinaryProtocol(transport_password_beserver);
+                //FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
                 BEPassword.Client client_password_beserver = new BEPassword.Client(protocol_password_beserver);
+                performPasswordRequestOnBE(chosenBEServer, client_password_beserver);
+                transport_password_beserver.close();
 
-                // Part 3: Call functions that handle password within BEServer.
-                performPasswordRequestOnBE(client_password_beserver);
             }
 
         } catch (Exception e) {
@@ -223,7 +253,7 @@ public class FEServer {
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
             // This is FEServer
-            if (pport != null) {
+            if (!checkIfSeedOrNot(mport)) {
                 // Part 0: Open a server socket to receive requests from the client.
                 System.out.println("[FEServer] Now listening to client requests on pport = " + pport);
 
@@ -232,7 +262,6 @@ public class FEServer {
                 TServer server = new TThreadPoolServer(
                         new TThreadPoolServer.Args(serverTransport).processor(processor_password));
 
-                // FIXME: I think this needs to be on a seperate thread, currently this blocks everything.
                 server.serve();
             } else { // This is FESeed
                 System.out.println("[FESeed] Password port doesn't in FESeed is not programmed.");
@@ -254,16 +283,10 @@ public class FEServer {
         return null;
     }
 
-    private static void performPasswordRequestOnBE(BEPassword.Client client_password_beserver) throws TException {
-
-        String passwordHash = client_password_beserver.hashPassword("password", (short) 10);
-        System.out.println("Password Hash=" + passwordHash);
-
-        boolean checkPassword = client_password_beserver.checkPassword("password", passwordHash);
-        System.out.println("Check Password PASS=" + checkPassword);
-
-        checkPassword = client_password_beserver.checkPassword("password_wrong", passwordHash);
-        System.out.println("Check Password FAIL=" + checkPassword);
+    private static void performPasswordRequestOnBE(List<String> chosenBEServer, BEPassword.Client client_password_beserver) throws TException {
+        // Call the FEPasswordHandler function.
+        // TODO: Find a way to get the values from the test client.
+        client_password_beserver.hashPassword("password", (short) 10);
     }
 
     // TODO: Evaluate the need for this. Don't think we need this.
