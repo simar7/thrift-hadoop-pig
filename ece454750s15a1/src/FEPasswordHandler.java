@@ -15,80 +15,23 @@ import java.util.Random;
 
 public class FEPasswordHandler implements FEPassword.Iface {
 
-    public static class BEServerEntity {
-        public String nodeName;
-        public Integer numCores;
-        public String host;
-        public Integer passwordPort;
-        public Integer managementPort;
+    public static CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServer.BEServerEntity>();
 
-        public BEServerEntity() {
-            this.nodeName = "UNSET";
-            this.numCores = null;
-            this.host = "UNSET";
-            this.passwordPort = null;
-            this.managementPort = null;
-        }
-
-        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
-            this.nodeName = nodeName;
-            this.numCores = numCores;
-            this.passwordPort = pport;
-            this.managementPort = mport;
-            this.host = host;
-        }
-
-        public String[] getBEHostNamePortNumber() {
-            String[] ArrRet = {this.host, this.passwordPort.toString()};
-            return ArrRet;
-        }
-
-        public String[] getBEHostNamePortNumberCores() {
-            String[] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
-            return ArrRet;
-        }
-
-        public int getBECores() {
-            return this.numCores;
-        }
-
-        public String getBEHostName() {
-            return this.host;
-        }
-
-        public int getBEManagementPortNumber() {
-            return this.managementPort;
-        }
-
-        public int getBEPasswordPortNumber() {
-            return this.passwordPort;
-        }
-
-        public void __debug_showInfo() {
-            System.out.println("nodeName = " + this.nodeName);
-            System.out.println("host = " + this.host);
-            System.out.println("pport = " + this.passwordPort);
-            System.out.println("mport = " + this.managementPort);
-            System.out.println("numCores = " + this.numCores);
-        }
-
-    }
-
-    public static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
-
-    public FEPasswordHandler(CopyOnWriteArrayList<BEServerEntity> BEServerList) {
+    public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
         this.BEServerList = BEServerList;
     }
 
-    public BEServerEntity getTheBestPossibleBEServer() {
+    public BEServer.BEServerEntity getTheBestPossibleBEServer() {
         int maxCoresFound = 0;
-        BEServerEntity chosenBEServer = null;
+        BEServer.BEServerEntity chosenBEServer = null;
 
-        for(int node = 0; node < BEServerList.size(); node++) {
+        for(int node = 0; node < this.BEServerList.size(); node++) {
             // Simple core based logic to return the highest core'd BEServer.
             // TODO: Add logic based on timestamps when BEServer last joined.
-            if (BEServerList.get(node).getBECores() >= maxCoresFound) {
-                chosenBEServer = BEServerList.get(node);
+            System.out.println("picking node based on ncores");
+            this.BEServerList.get(node).__debug_showInfo();
+            if (this.BEServerList.get(node).getBECores() >= maxCoresFound) {
+                chosenBEServer = this.BEServerList.get(node);
             }
         }
         return chosenBEServer;
@@ -104,7 +47,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-            BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
@@ -120,6 +64,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
         }
         catch (Exception e){  // something isn't right.
+            e.printStackTrace();
             ServiceUnavailableException SUE = new ServiceUnavailableException();
             throw SUE;  // FIXME: Throw the proper exception.
         }
@@ -130,7 +75,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-            BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());

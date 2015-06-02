@@ -11,18 +11,22 @@ import java.lang.System;
 public class BEPasswordHandler implements BEPassword.Iface {
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
-        System.out.println("[BEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
+        try {
+            System.out.println("[BEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
 
-        String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
-        System.out.println("[BEPasswordHandler] hashedString = " + hashedString);
-        if (hashedString.length() != 0) {
-            return hashedString;
+            String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
+            System.out.println("[BEPasswordHandler] hashedString = " + hashedString);
+            if (hashedString.length() != 0) {
+                return hashedString;
+            }
         }
-        else {  // something isn't right.
+        catch (Exception e){  // something isn't right.
+            e.printStackTrace();
             ServiceUnavailableException SUE = new ServiceUnavailableException();
             throw SUE;
         }
-
+        // should not reach this.
+        return null;
     }
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {

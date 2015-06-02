@@ -16,61 +16,6 @@ import java.util.Collections;
 
 public class FEManagementHandler implements FEManagement.Iface {
 
-    public static class BEServerEntity {
-        public String  nodeName;
-        public Integer numCores;
-        public String host;
-        public Integer passwordPort;
-        public Integer managementPort;
-
-        public BEServerEntity() {
-            this.nodeName = "UNSET";
-            this.numCores = null;
-            this.host = "UNSET";
-            this.passwordPort = null;
-            this.managementPort = null;
-        }
-
-        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
-            this.nodeName = nodeName;
-            this.numCores = numCores;
-            this.passwordPort = pport;
-            this.managementPort = mport;
-            this.host = host;
-        }
-
-        public String [] getBEHostNamePortNumber() {
-            String [] ArrRet = {this.host, this.passwordPort.toString()};
-            return ArrRet;
-        }
-
-        public String [] getBEHostNamePortNumberCores() {
-            String [] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
-            return ArrRet;
-        }
-
-        public String getBEHostName() {
-            return this.host;
-        }
-
-        public int getBEManagementPortNumber() {
-            return this.managementPort;
-        }
-
-        public int getBEPasswordPortNumber() {
-            return this.passwordPort;
-        }
-
-        public void __debug_showInfo() {
-            System.out.println("nodeName = " + this.nodeName);
-            System.out.println("host = " + this.host);
-            System.out.println("pport = " + this.passwordPort);
-            System.out.println("mport = " + this.managementPort);
-            System.out.println("numCores = " + this.numCores);
-        }
-
-    }
-
     public static class SeedEntity {
         public String seedHostName;
         public Integer seedPort;
@@ -104,10 +49,10 @@ public class FEManagementHandler implements FEManagement.Iface {
         }
     }
 
-    public  static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
-    public  static CopyOnWriteArrayList<SeedEntity> seedList = new CopyOnWriteArrayList<SeedEntity>();
+    public  static CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServer.BEServerEntity>();
+    public  static CopyOnWriteArrayList<FEServer.SeedEntity> seedList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
 
-    public FEManagementHandler(CopyOnWriteArrayList<SeedEntity> seedList, CopyOnWriteArrayList<BEServerEntity> BEServerList) {
+    public FEManagementHandler(CopyOnWriteArrayList<FEServer.SeedEntity> seedList, CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
         this.BEServerList = BEServerList;
         this.seedList = seedList;
     }
@@ -131,7 +76,7 @@ public class FEManagementHandler implements FEManagement.Iface {
     // Join Cluster Interface
     public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException {
         // Add incoming stuff to the ConcurrentList.
-        BEServerEntity beServerEntity = new BEServerEntity();
+        BEServer.BEServerEntity beServerEntity = new BEServer.BEServerEntity();
         beServerEntity.setEntityFields(nodeName, host, pport, mport, ncores);
         BEServerList.add(beServerEntity);
 

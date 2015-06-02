@@ -75,67 +75,8 @@ public class FEServer {
         }
     }
 
-    public class BEServerEntity {
-        public String nodeName;
-        public Integer numCores;
-        public String host;
-        public Integer passwordPort;
-        public Integer managementPort;
-
-        public BEServerEntity() {
-            this.nodeName = "UNSET";
-            this.numCores = null;
-            this.host = "UNSET";
-            this.passwordPort = null;
-            this.managementPort = null;
-        }
-
-        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
-            this.nodeName = nodeName;
-            this.numCores = numCores;
-            this.passwordPort = pport;
-            this.managementPort = mport;
-            this.host = host;
-        }
-
-        public String[] getBEHostNamePortNumber() {
-            String[] ArrRet = {this.host, this.passwordPort.toString()};
-            return ArrRet;
-        }
-
-        public String[] getBEHostNamePortNumberCores() {
-            String[] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
-            return ArrRet;
-        }
-
-        public int getBECores() {
-            return this.numCores;
-        }
-
-        public String getBEHostName() {
-            return this.host;
-        }
-
-        public int getBEManagementPortNumber() {
-            return this.managementPort;
-        }
-
-        public int getBEPasswordPortNumber() {
-            return this.passwordPort;
-        }
-
-        public void __debug_showInfo() {
-            System.out.println("nodeName = " + this.nodeName);
-            System.out.println("host = " + this.host);
-            System.out.println("pport = " + this.passwordPort);
-            System.out.println("mport = " + this.managementPort);
-            System.out.println("numCores = " + this.numCores);
-        }
-
-    }
-
-    public static CopyOnWriteArrayList<SeedEntity> seedEntityList = new CopyOnWriteArrayList<SeedEntity>();
-    public static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
+    public static CopyOnWriteArrayList<FEServer.SeedEntity> seedEntityList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
+    public static CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServer.BEServerEntity>();
 
     public static List<String> getAllSeedPorts() {
         List<String> seedPortList = new ArrayList<String>();
@@ -211,7 +152,7 @@ public class FEServer {
 
             //contactFESeed();
 
-            handler_password = new FEPasswordHandler(FEPasswordHandler.BEServerList);
+            handler_password = new FEPasswordHandler(BEServerList);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
@@ -219,10 +160,9 @@ public class FEServer {
                     simple_password(processor_password);
                 }
             };
-            new Thread(simple_password).start();
 
             // TODO: Do we actually need a Management port for FEServers?
-            handler_management = new FEManagementHandler(FEManagementHandler.seedList, FEManagementHandler.BEServerList);
+            handler_management = new FEManagementHandler(seedEntityList, BEServerList);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -230,6 +170,8 @@ public class FEServer {
                     simple_management(processor_management);
                 }
             };
+
+            new Thread(simple_password).start();
             new Thread(simple_management).start();
 
         } catch (Exception x) {

@@ -33,6 +33,65 @@ public class BEServer {
     public static Integer ncores;
     public static String seed_string;
 
+    public static class BEServerEntity {
+        public String nodeName;
+        public Integer numCores;
+        public String host;
+        public Integer passwordPort;
+        public Integer managementPort;
+
+        public BEServerEntity() {
+            this.nodeName = "UNSET";
+            this.numCores = null;
+            this.host = "UNSET";
+            this.passwordPort = null;
+            this.managementPort = null;
+        }
+
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = pport;
+            this.managementPort = mport;
+            this.host = host;
+        }
+
+        public String[] getBEHostNamePortNumber() {
+            String[] ArrRet = {this.host, this.passwordPort.toString()};
+            return ArrRet;
+        }
+
+        public String[] getBEHostNamePortNumberCores() {
+            String[] ArrRet = {this.host, this.passwordPort.toString(), Integer.toString(this.numCores)};
+            return ArrRet;
+        }
+
+        public int getBECores() {
+            return this.numCores;
+        }
+
+        public String getBEHostName() {
+            return this.host;
+        }
+
+        public int getBEManagementPortNumber() {
+            return this.managementPort;
+        }
+
+        public int getBEPasswordPortNumber() {
+            return this.passwordPort;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("nodeName = " + this.nodeName);
+            System.out.println("host = " + this.host);
+            System.out.println("pport = " + this.passwordPort);
+            System.out.println("mport = " + this.managementPort);
+            System.out.println("numCores = " + this.numCores);
+        }
+
+    }
+
     public static class SeedEntity {
         public String  seedHostName;
         public Integer seedPort;
@@ -65,7 +124,7 @@ public class BEServer {
             System.out.println("seedPort = " + this.seedPort);
         }
     }
-    public static List<SeedEntity> seedEntityList = new ArrayList<SeedEntity>();
+    public static List<FEServer.SeedEntity> seedEntityList = new ArrayList<FEServer.SeedEntity>();
 
     private static void helpMenu() {
         System.out.println("java ece454750s15a1.FEServer");
@@ -97,7 +156,7 @@ public class BEServer {
                     for (int j = 0; j < seeds_colon_delim.length - 1; j = j+2) {
                         String seedHostName = seeds_colon_delim[j];
                         int seedPortNumber = Integer.parseInt(seeds_colon_delim[j+1]);
-                        SeedEntity seed = new SeedEntity();
+                        FEServer.SeedEntity seed = new FEServer.SeedEntity();
                         seed.setEntityFields(seedHostName, seedPortNumber);
                         seedEntityList.add(seed);
                     }
@@ -179,7 +238,7 @@ public class BEServer {
         try {
             TTransport transport;
             // Get a random seed from the seedEntityList to inform about arrival.
-            SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
+            FEServer.SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
 
             transport = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
             transport.open();
