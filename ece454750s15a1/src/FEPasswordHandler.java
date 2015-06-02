@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class FEPasswordHandler implements FEPassword.Iface {
 
-    public class BEServerEntity {
+    public static class BEServerEntity {
         public String nodeName;
         public Integer numCores;
         public String host;
@@ -74,7 +74,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
     }
 
-    private CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
+    public static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
 
     public FEPasswordHandler(CopyOnWriteArrayList<BEServerEntity> BEServerList) {
         this.BEServerList = BEServerList;
@@ -95,32 +95,34 @@ public class FEPasswordHandler implements FEPassword.Iface {
     }
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
-        String hashedPassword = null;
+        try {
+            String hashedPassword = null;
 
-        System.out.println("[FEPasswordHandler] Hashing Password...");
-        System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
+            System.out.println("[FEPasswordHandler] Hashing Password...");
+            System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
 
-        //Random rand = new Random();
-        //int randomBEServerIndex = rand.nextInt(BEServerList.size());
+            //Random rand = new Random();
+            //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-        BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
 
-        TTransport transport_password_fepassword;
-        transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
-        transport_password_fepassword.open();
-        TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
-        BEPassword.Client client = new BEPassword.Client(protocol);
+            TTransport transport_password_fepassword;
+            transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
+            transport_password_fepassword.open();
+            TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
+            BEPassword.Client client = new BEPassword.Client(protocol);
 
-        hashedPassword = client.hashPassword(password, logRounds);
-        transport_password_fepassword.close();
+            hashedPassword = client.hashPassword(password, logRounds);
+            transport_password_fepassword.close();
 
-        else{  // something isn't right.
+            System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
+            return hashedPassword;
+
+        }
+        catch (Exception e){  // something isn't right.
             ServiceUnavailableException SUE = new ServiceUnavailableException();
             throw SUE;  // FIXME: Throw the proper exception.
         }
-
-        System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
-        return hashedPassword;
     }
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {

@@ -211,7 +211,7 @@ public class FEServer {
 
             //contactFESeed();
 
-            handler_password = new FEPasswordHandler(BEServerList);
+            handler_password = new FEPasswordHandler(FEPasswordHandler.BEServerList);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
@@ -221,8 +221,8 @@ public class FEServer {
             };
             new Thread(simple_password).start();
 
-            // TODO: Do we actually need a Management port for Non-FE seeds?
-            handler_management = new FEManagementHandler(seedEntityList, BEServerList);
+            // TODO: Do we actually need a Management port for FEServers?
+            handler_management = new FEManagementHandler(FEManagementHandler.seedList, FEManagementHandler.BEServerList);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -249,6 +249,7 @@ public class FEServer {
             }
 
             // This is FESeed
+            // Need this for other BEServers to register to the FESeed.
             if (checkIfSeedOrNot(mport)) {
                 // Experiment 1: TThreadedPoolServer
                 TServerTransport serverTransport = new TServerSocket(mport);
@@ -259,43 +260,7 @@ public class FEServer {
 
             // This is FEServer
             if (!checkIfSeedOrNot(mport)) {
-
-                // Get a random seed from the seedEntityList to inform about arrival.
-                SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
-
-                // Part 1: FEServer connects to FESeed. (FEServer = client, FESeed = server)
-                System.out.println("[FEServer] Requesting a BEServer from FESeed...");
-                TTransport transport_management_seed;
-                transport_management_seed = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
-                transport_management_seed.open();
-
-
-                TProtocol protocol_management_seed = new TBinaryProtocol(transport_management_seed);
-                FEManagement.Client client_management_seed = new FEManagement.Client(protocol_management_seed);
-
-                // chosenBEServer.get(0) = hostName of BEServer to reach to.
-                // chosenBEServer.get(1) = PortNumber of BEServer to reach to.
-                // chosenBEServer.get(2) = Cores of BEServer to reach to.
-                List<String> chosenBEServer = new ArrayList<String>();
-                chosenBEServer = requestBEServer(client_management_seed);
-
-                //System.out.println("[FEServer] Chosen BEServer details: hostname =  " + chosenBEServer.get(0) + " | port = " + chosenBEServer.get(1));
-
-                // Part 2: FEServer connects to BEServer. (FEServer = client, BEServer = server)
-
-                // Instantiate the transport between FEServer and BEServer
-                TTransport transport_password_beserver;
-                System.out.println("[FEServer] Connecting to chosen BEServer to forward requests to...");
-                transport_password_beserver = new TSocket(chosenBEServer.get(0), Integer.parseInt(chosenBEServer.get(1)));
-                transport_password_beserver.open();
-
-                // Instantiate the protocol between FEServer and FEPasswordHandler
-                TProtocol protocol_password_beserver = new TBinaryProtocol(transport_password_beserver);
-                //FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
-                BEPassword.Client client_password_beserver = new BEPassword.Client(protocol_password_beserver);
-                performPasswordRequestOnBE(chosenBEServer, client_password_beserver);
-                transport_password_beserver.close();
-
+                // Some management logic for FEServer
             }
 
         } catch (Exception e) {
@@ -304,12 +269,6 @@ public class FEServer {
     }
 
     // Only executed if it's a FEServer. Not run for FESeeds.
-    /*
-        Upon receiving a request from client:
-            1) Query the cluster list to find a BE.
-            2) Forward request to BE.
-    */
-
     public static void simple_password(FEPassword.Processor processor_password) {
         try {
             // This is FEServer
@@ -331,17 +290,6 @@ public class FEServer {
         }
     }
 
-    private static List<String> requestBEServer(FEManagement.Client client_management_seed) throws TException {
-        try {
-            List<String> chosenBEServer = new ArrayList<String>();
-            chosenBEServer = client_management_seed.getBEServer();
-            return chosenBEServer;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // should never get here.
-        return null;
-    }
 
     // TODO: Evaluate the need for this. Don't think we need this.
     // Only used if this is an actual FEServer and NOT a seed.

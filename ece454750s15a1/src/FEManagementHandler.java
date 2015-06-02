@@ -16,7 +16,7 @@ import java.util.Collections;
 
 public class FEManagementHandler implements FEManagement.Iface {
 
-    public class BEServerEntity {
+    public static class BEServerEntity {
         public String  nodeName;
         public Integer numCores;
         public String host;
@@ -71,7 +71,7 @@ public class FEManagementHandler implements FEManagement.Iface {
 
     }
 
-    public class SeedEntity {
+    public static class SeedEntity {
         public String seedHostName;
         public Integer seedPort;
 
@@ -104,8 +104,8 @@ public class FEManagementHandler implements FEManagement.Iface {
         }
     }
 
-    public  CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
-    public  CopyOnWriteArrayList<SeedEntity> seedList = new CopyOnWriteArrayList<SeedEntity>();
+    public  static CopyOnWriteArrayList<BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServerEntity>();
+    public  static CopyOnWriteArrayList<SeedEntity> seedList = new CopyOnWriteArrayList<SeedEntity>();
 
     public FEManagementHandler(CopyOnWriteArrayList<SeedEntity> seedList, CopyOnWriteArrayList<BEServerEntity> BEServerList) {
         this.BEServerList = BEServerList;
@@ -120,7 +120,7 @@ public class FEManagementHandler implements FEManagement.Iface {
 
     // Return group member list.
     public List<String> getGroupMembers() {
-        ArrayList<String> groupMembers = new ArrayList<>();
+        ArrayList<String> groupMembers = new ArrayList<String>();
         groupMembers.add("s244sing");
         groupMembers.add("cpinn");
         return groupMembers;
