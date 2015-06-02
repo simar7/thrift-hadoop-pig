@@ -57,6 +57,10 @@ public class FEManagementHandler implements FEManagement.Iface {
         this.seedList = seedList;
     }
 
+    public CopyOnWriteArrayList<BEServer.BEServerEntity> getBEServerList() {
+        return this.BEServerList;
+    }
+
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
         PerfCounters perfList = new PerfCounters();
