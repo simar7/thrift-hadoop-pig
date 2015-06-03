@@ -48,12 +48,33 @@ public class BEServer {
             this.managementPort = null;
         }
 
+        public BEServerEntity(String nodeName, Integer numCores, Integer passwordPort, Integer managementPort, String host) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = passwordPort;
+            this.managementPort = managementPort;
+            this.host = host;
+        }
+
         public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
             this.nodeName = nodeName;
             this.numCores = numCores;
             this.passwordPort = pport;
             this.managementPort = mport;
             this.host = host;
+        }
+
+        @Override
+        public boolean equals(final Object otherObj) {
+            if((otherObj == null) || !(otherObj instanceof BEServerEntity)) {
+                return false;
+            }
+
+            final BEServerEntity other = (BEServerEntity) otherObj;
+            boolean equalStatus = false;
+
+            equalStatus = (other.getBEPasswordPortNumber() == this.getBEPasswordPortNumber());
+            return equalStatus;
         }
 
         public String[] getBEHostNamePortNumber() {
@@ -66,12 +87,14 @@ public class BEServer {
             return ArrRet;
         }
 
-        public int getBECores() {
-            return this.numCores;
-        }
+        public String getBENodeName() {return this.nodeName; }
 
         public String getBEHostName() {
             return this.host;
+        }
+
+        public int getBECores() {
+            return this.numCores;
         }
 
         public int getBEManagementPortNumber() {

@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class FEPasswordHandler implements FEPassword.Iface {
 
-    public static CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServer.BEServerEntity>();
+    private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
 
     public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
         this.BEServerList = BEServerList;
@@ -24,6 +24,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
     public BEServer.BEServerEntity getTheBestPossibleBEServer() {
         int maxCoresFound = 0;
         BEServer.BEServerEntity chosenBEServer = null;
+
+        System.out.println("inside the getthebestpossiblebeserver");
 
         for(int node = 0; node < this.BEServerList.size(); node++) {
             // Simple core based logic to return the highest core'd BEServer.
@@ -34,6 +36,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
                 chosenBEServer = this.BEServerList.get(node);
             }
         }
+
+
         return chosenBEServer;
     }
 
@@ -47,8 +51,13 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            System.out.println("going to the getthebestpossiblebeserver");
+            System.out.println("the beserverlist.size() = " + BEServerList.size());
 
+            //BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            Random rand = new Random();
+            int beserverindex = rand.nextInt(BEServerList.size());
+            BEServer.BEServerEntity chosenBEServer = BEServerList.get(beserverindex);
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());

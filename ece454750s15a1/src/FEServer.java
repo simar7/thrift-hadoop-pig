@@ -14,6 +14,7 @@ import org.apache.thrift.transport.TTransport;
 import java.lang.*;
 import java.lang.Exception;
 import java.lang.Integer;
+import java.lang.NumberFormatException;
 import java.lang.Override;
 import java.lang.Runnable;
 import java.lang.String;
@@ -21,6 +22,7 @@ import java.lang.System;
 import java.lang.Thread;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +37,9 @@ public class FEServer {
 
     public static FEManagementHandler handler_management;
     public static FEManagement.Processor processor_management;
+
+    public static FEManagementHandler handler_sync_with_seed;
+    public static FEManagement.Processor processor_sync_with_seed;
 
     public static String host;
     public static Integer pport;
@@ -111,7 +116,6 @@ public class FEServer {
         System.out.println("Seed ports are in A1Management service");
     }
 
-
     public static void parseArgs(String[] args) {
         for (int i = 0; i < args.length - 1; i++) {
             //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
@@ -141,6 +145,12 @@ public class FEServer {
         }
     }
 
+    public static void printCurrentListOfBEs(CopyOnWriteArrayList<BEServer.BEServerEntity> listOfBEs) {
+        for (BEServer.BEServerEntity BEServerNode : listOfBEs) {
+            BEServerNode.__debug_showInfo();
+        }
+    }
+
     public static void main(String[] args) {
         try {
             if (args.length == 0) {
@@ -152,6 +162,17 @@ public class FEServer {
 
             //contactFESeed();
 
+            // TODO: Do we actually need a Management port for FEServers?
+            handler_management = new FEManagementHandler(BEServerList);
+            processor_management = new FEManagement.Processor(handler_management);
+            Runnable simple_management = new Runnable() {
+                @Override
+                public void run() {
+                    simple_management(processor_management);
+                }
+            };
+
+            //System.out.println("beserverlist inside of feserver = " + BEServerList.size());
             handler_password = new FEPasswordHandler(BEServerList);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
@@ -161,18 +182,22 @@ public class FEServer {
                 }
             };
 
-            // TODO: Do we actually need a Management port for FEServers?
-            handler_management = new FEManagementHandler(seedEntityList, BEServerList);
-            processor_management = new FEManagement.Processor(handler_management);
-            Runnable simple_management = new Runnable() {
+            new Thread(simple_management).start();
+            new Thread(simple_password).start();
+
+            handler_sync_with_seed = new FEManagementHandler(BEServerList);
+            processor_sync_with_seed = new FEManagement.Processor(handler_sync_with_seed);
+            Runnable simple_sync_with_seed = new Runnable() {
                 @Override
                 public void run() {
-                    simple_management(processor_management);
+                    simple_sync_with_seed(processor_sync_with_seed);
                 }
             };
 
-            new Thread(simple_password).start();
-            new Thread(simple_management).start();
+            if(!checkIfSeedOrNot(mport)) {
+                System.out.println("[FEServer] Running the sync_with_seed thread...");
+                new Thread(simple_sync_with_seed).start();
+            }
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -233,6 +258,56 @@ public class FEServer {
     }
 
 
+    public static void simple_sync_with_seed(FEManagement.Processor processor_sync_with_seed) {
+        try {
+            while(true) {
+                // Get a random server to connect to each time.
+                Random rand = new Random();
+                int randomSeedIndex = rand.nextInt(seedEntityList.size());
+                FEServer.SeedEntity seedEntity = seedEntityList.get(randomSeedIndex);
+
+                /* Print current members in the BEServerList
+                System.out.println("[FEServer] Old BEServerList");
+                printCurrentListOfBEs(BEServerList);
+                */
+
+                // Connect to the randomly picked seed.
+                TTransport transport_sync_with_seed;
+                System.out.println("[FEServer] Trying to start transport_sync_with_seed on port = " + seedEntity.getSeedPortNumber());
+                transport_sync_with_seed = new TSocket(seedEntity.getSeedHostName(), seedEntity.getSeedPortNumber());
+                transport_sync_with_seed.open();
+
+                // TODO : Parse args into a nice package before sending it to the FEManagementHandler.java
+                TProtocol protocol_sync_with_seed = new TBinaryProtocol(transport_sync_with_seed);
+                FEManagement.Client client_management_sync_with_seed = new FEManagement.Client(protocol_sync_with_seed);
+
+                List<String> newBEServersToAdd = client_management_sync_with_seed.getBEServerList();
+
+                for (int i = 0; i < newBEServersToAdd.size(); i = i + 5) {
+                    BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity(newBEServersToAdd.get(i), Integer.parseInt(newBEServersToAdd.get(i + 1)), Integer.parseInt(newBEServersToAdd.get(i + 2)), Integer.parseInt(newBEServersToAdd.get(i + 3)), newBEServersToAdd.get(i + 4));
+                    BEServerEntityToAdd.__debug_showInfo();
+                    if (!BEServerList.contains(BEServerEntityToAdd)) {
+                        BEServerList.add(BEServerEntityToAdd);
+                    }
+                }
+
+                /* Print the updated list of members in the BEServerList
+                System.out.println("[FEServer] New BEServerList");
+                printCurrentListOfBEs(BEServerList);
+                */
+
+                transport_sync_with_seed.close();
+                Thread.sleep(8000);
+            }
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // TODO: Evaluate the need for this. Don't think we need this.
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
@@ -259,4 +334,6 @@ public class FEServer {
         }
 
     }
+
+
 }
