@@ -199,7 +199,7 @@
         <echo>[ece454750s15a1] BEServer</echo>
         <java classname="BEServer" fork="true"
               classpathref="ece454750s15a1.classpath" failonerror="false">
-            <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+            <arg line="-host localhost -pport 11236 -mport 11237 -ncores 10 -seeds localhost:9999"/>
         </java>
     </target>
 

@@ -34,9 +34,9 @@ public class FEPasswordHandler implements FEPassword.Iface {
             this.BEServerList.get(node).__debug_showInfo();
             if (this.BEServerList.get(node).getBECores() >= maxCoresFound) {
                 chosenBEServer = this.BEServerList.get(node);
+                maxCoresFound = this.BEServerList.get(node).getBECores();
             }
         }
-
 
         return chosenBEServer;
     }
@@ -54,10 +54,13 @@ public class FEPasswordHandler implements FEPassword.Iface {
             System.out.println("going to the getthebestpossiblebeserver");
             System.out.println("the beserverlist.size() = " + BEServerList.size());
 
-            //BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
-            Random rand = new Random();
-            int beserverindex = rand.nextInt(BEServerList.size());
-            BEServer.BEServerEntity chosenBEServer = BEServerList.get(beserverindex);
+            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            /*
+                Randomly pick a BEServer logic.
+                Random rand = new Random();
+                int beserverindex = rand.nextInt(BEServerList.size());
+                BEServer.BEServerEntity chosenBEServer = BEServerList.get(beserverindex);
+             */
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());

@@ -285,7 +285,6 @@ public class FEServer {
 
                 for (int i = 0; i < newBEServersToAdd.size(); i = i + 5) {
                     BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity(newBEServersToAdd.get(i), Integer.parseInt(newBEServersToAdd.get(i + 1)), Integer.parseInt(newBEServersToAdd.get(i + 2)), Integer.parseInt(newBEServersToAdd.get(i + 3)), newBEServersToAdd.get(i + 4));
-                    BEServerEntityToAdd.__debug_showInfo();
                     if (!BEServerList.contains(BEServerEntityToAdd)) {
                         BEServerList.add(BEServerEntityToAdd);
                     }
