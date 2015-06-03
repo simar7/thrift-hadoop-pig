@@ -305,6 +305,7 @@ public class FEServer {
         catch (Exception e) {
             e.printStackTrace();
         }
+        // Add logic to catch ServiceUnavailableException.
     }
 
     // TODO: Evaluate the need for this. Don't think we need this.
