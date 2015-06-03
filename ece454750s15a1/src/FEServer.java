@@ -160,6 +160,7 @@ public class FEServer {
                 FEServer.parseArgs(args);
             }
 
+            // Uncomment this line to connect to FESeed.
             //contactFESeed();
 
             // TODO: Do we actually need a Management port for FEServers?
