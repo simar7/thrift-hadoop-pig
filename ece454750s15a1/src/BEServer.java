@@ -4,6 +4,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.TException;
@@ -262,8 +263,8 @@ public class BEServer {
     public static void simple_password(BEPassword.Processor processor_password) {
         try {
             TServerTransport serverTransport = new TServerSocket(pport);
-            TServer server = new TSimpleServer(
-                    new Args(serverTransport).processor(processor_password));
+            TThreadPoolServer server = new TThreadPoolServer(
+                    new TThreadPoolServer.Args(serverTransport).processor(processor_password));
 
             System.out.println("Starting the BEServer password iface at pport = " + pport);
             server.serve();
