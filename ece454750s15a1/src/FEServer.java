@@ -44,6 +44,9 @@ public class FEServer {
     public static FEManagementHandler handler_sync_with_seed;
     public static FEManagement.Processor processor_sync_with_seed;
 
+    public static FEManagementHandler handler_heartbeat;
+    public static FEManagement.Processor processor_heartbeat;
+
     public static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public static String host;
@@ -256,7 +259,18 @@ public class FEServer {
                 System.out.println("[FEServer] Running the sync_with_seed thread...");
             }
 
+            handler_heartbeat = new FEManagementHandler(BEServerList);
+            processor_heartbeat = new FEManagement.Processor(handler_heartbeat);
+            Runnable simple_heartbeat = new Runnable() {
+                @Override
+                public void run() {
+                    simple_heartbeat(processor_heartbeat);
+                }
+            };
+
             executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 5000, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(simple_heartbeat, 0, 5000, TimeUnit.MILLISECONDS);
+
         } catch (Exception x) {
             x.printStackTrace();
         }
@@ -365,6 +379,33 @@ public class FEServer {
             //e.printStackTrace();
         }
         // Add logic to catch ServiceUnavailableException.
+    }
+
+    public static void simple_heartbeat(FEManagement.Processor processor_heartbeat) {
+        int BEServerIterator = 0;
+        try {
+
+            TTransport transport_simple_heartbeat;
+            for (; BEServerIterator < BEServerList.size(); BEServerIterator = BEServerIterator + 1) {
+
+                BEServer.BEServerEntity BEServerToCheck = BEServerList.get(BEServerIterator);
+
+                if (checkIfSeedOrNot(mport)) {
+                    System.out.println("[FESeed] Checking if BEServer at pport = " + BEServerToCheck.getBEPasswordPortNumber());
+                } else {
+                    System.out.println("[FEServer] Checking if BEServer at pport = " + BEServerToCheck.getBEPasswordPortNumber());
+                }
+
+                transport_simple_heartbeat = new TSocket(BEServerToCheck.getBEHostName(), BEServerToCheck.getBEPasswordPortNumber());
+                transport_simple_heartbeat.open();
+
+                // If we get this far, it means that the BEServer is still alive!
+                transport_simple_heartbeat.close();
+
+            }
+        } catch (Exception e) { // Oh no! A BEServer was killed! :(
+            BEServerList.remove(BEServerIterator);
+        }
     }
 
     // TODO: Evaluate the need for this. Don't think we need this.

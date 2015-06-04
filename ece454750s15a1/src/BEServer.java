@@ -9,6 +9,9 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import java.lang.Exception;
 import java.lang.Override;
@@ -34,7 +37,10 @@ public class BEServer {
     public static String seed_string;
 
     public static Long uptime;
+    public static boolean hasBEServerConnectedToSeed = false;
     public static PerfCounters perfManager = new PerfCounters();
+
+    public static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public static class BEServerEntity {
         public String nodeName;
@@ -220,13 +226,20 @@ public class BEServer {
                     simple_management(processor_management);
                 }
             };
+            Runnable contactFESeed = new Runnable() {
+                @Override
+                public void run() {
+                    contactFESeed();
+                }
+            };
 
             uptime = System.currentTimeMillis();
 
             new Thread(simple_management).start();
             new Thread(simple_password).start();
 
-            contactFESeed();
+            // contact other FESeeds to notify about presence.
+            new Thread(contactFESeed).start();
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -260,29 +273,40 @@ public class BEServer {
     }
 
     // This fucntion sends stuff to the servers via the handlers.
-    private static void contactFESeed() throws TException {
-        try {
-            TTransport transport;
-            // Get a random seed from the seedEntityList to inform about arrival.
-            FEServer.SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
+    private static void contactFESeed() {
+        while (!hasBEServerConnectedToSeed) {
+            try {
+                TTransport transport;
+                // Get a random seed from the seedEntityList to inform about arrival.
+                FEServer.SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
 
-            transport = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
-            transport.open();
+                transport = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
+                transport.open();
 
-            TProtocol protocol = new TBinaryProtocol(transport);
-            FEManagement.Client client_management = new FEManagement.Client(protocol);
+                TProtocol protocol = new TBinaryProtocol(transport);
+                FEManagement.Client client_management = new FEManagement.Client(protocol);
 
-            boolean joinResult = client_management.joinCluster("BEServer", "localhost", pport, mport, ncores);
-            if(joinResult) {
-                System.out.println("[BEServer] Successfully added BEServer to cluster.");
-            } else {
-                System.out.println("[BEServer] Failed to add BEServer to cluster.");
+                boolean joinResult = client_management.joinCluster("BEServer", "localhost", pport, mport, ncores);
+                if(joinResult) {
+                    System.out.println("[BEServer] Successfully added BEServer to cluster.");
+                } else {
+                    System.out.println("[BEServer] Failed to add BEServer to cluster.");
+                }
+
+                hasBEServerConnectedToSeed = true;
+                transport.close();
+
+            } catch (Exception e) {
+                // Requested FESeed hasn't come up yet...
+                //e.printStackTrace();
+                System.out.println("[BEServer] Waiting for FESeed to connect to...");
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception x) {
+                    // should never really happen..
+                    x.printStackTrace();
+                }
             }
-
-            transport.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

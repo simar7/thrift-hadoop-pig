@@ -27,7 +27,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
         System.out.println("inside the getthebestpossiblebeserver");
 
-        for(int node = 0; node < this.BEServerList.size(); node++) {
+        for (int node = 0; node < this.BEServerList.size(); node++) {
             // Simple core based logic to return the highest core'd BEServer.
             // TODO: Add logic based on timestamps when BEServer last joined.
             System.out.println("picking node based on ncores");
@@ -74,12 +74,12 @@ public class FEPasswordHandler implements FEPassword.Iface {
             System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
             return hashedPassword;
 
+        } catch (Exception e) {  // Oh noez! The BEServer has crashed!
+            // e.printStackTrace();
+
         }
-        catch (Exception e){  // something isn't right.
-            e.printStackTrace();
-            ServiceUnavailableException SUE = new ServiceUnavailableException();
-            throw SUE;  // FIXME: Throw the proper exception.
-        }
+        // should never get here
+        return null;
     }
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
