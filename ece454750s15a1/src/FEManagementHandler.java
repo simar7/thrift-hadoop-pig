@@ -8,13 +8,14 @@ import java.lang.Integer;
 import java.lang.NumberFormatException;
 import java.lang.String;
 import java.lang.System;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.Collections;
 
 
 public class FEManagementHandler implements FEManagement.Iface {
@@ -152,7 +153,7 @@ public class FEManagementHandler implements FEManagement.Iface {
         // Add incoming stuff to the ConcurrentList.
         if(nodeName.equals("BEServer")) {
             BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity();
-            BEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores);
+            BEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores, java.util.Calendar.getInstance().getTimeInMillis());
             if(!BEServerList.contains(BEServerEntityToAdd)) {
                 BEServerList.add(BEServerEntityToAdd);
             }

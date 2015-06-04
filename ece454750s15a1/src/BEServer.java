@@ -10,18 +10,22 @@ import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+
+import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.Calendar;
 
 import java.lang.Exception;
 import java.lang.Override;
 import java.lang.Runnable;
 import java.lang.Thread;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
 
 public class BEServer {
 
@@ -43,12 +47,19 @@ public class BEServer {
 
     public static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
+    public static Long currentTimeInSeconds() {
+        Long currentTimeInMillis = Long.MIN_VALUE;
+        currentTimeInMillis = Calendar.getInstance().getTimeInMillis();
+        return currentTimeInMillis;
+    }
+
     public static class BEServerEntity {
         public String nodeName;
         public Integer numCores;
         public String host;
         public Integer passwordPort;
         public Integer managementPort;
+        public Long joinTime;
 
         public BEServerEntity() {
             this.nodeName = "UNSET";
@@ -56,6 +67,7 @@ public class BEServer {
             this.host = "UNSET";
             this.passwordPort = null;
             this.managementPort = null;
+            this.joinTime = null;
         }
 
         public BEServerEntity(String nodeName, Integer numCores, Integer passwordPort, Integer managementPort, String host) {
@@ -64,14 +76,16 @@ public class BEServer {
             this.passwordPort = passwordPort;
             this.managementPort = managementPort;
             this.host = host;
+            this.joinTime = currentTimeInSeconds();
         }
 
-        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores, Long joinTime) {
             this.nodeName = nodeName;
             this.numCores = numCores;
             this.passwordPort = pport;
             this.managementPort = mport;
             this.host = host;
+            this.joinTime = joinTime;
         }
 
         @Override
@@ -115,12 +129,15 @@ public class BEServer {
             return this.passwordPort;
         }
 
+        public Long getBEJoinTime() { return this.joinTime; }
+
         public void __debug_showInfo() {
             System.out.println("nodeName = " + this.nodeName);
             System.out.println("host = " + this.host);
             System.out.println("pport = " + this.passwordPort);
             System.out.println("mport = " + this.managementPort);
             System.out.println("numCores = " + this.numCores);
+            System.out.println("joinTime = " + this.joinTime);
         }
 
     }

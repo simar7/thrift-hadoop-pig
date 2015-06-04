@@ -21,20 +21,39 @@ public class FEPasswordHandler implements FEPassword.Iface {
         this.BEServerList = BEServerList;
     }
 
-    public BEServer.BEServerEntity getTheBestPossibleBEServer() {
+    public BEServer.BEServerEntity getTheHighestCoreServer() {
         int maxCoresFound = 0;
         BEServer.BEServerEntity chosenBEServer = null;
 
-        System.out.println("inside the getthebestpossiblebeserver");
+        System.out.println("[FEPasswordHandler] Picking a BEServer based on highest ncores ONLY..");
 
+        // This can be optimized to a binary search.
+        // IFF we ordered our CopyOnWriteArrayList by ncores order.
         for (int node = 0; node < this.BEServerList.size(); node++) {
             // Simple core based logic to return the highest core'd BEServer.
-            // TODO: Add logic based on timestamps when BEServer last joined.
-            System.out.println("picking node based on ncores");
-            this.BEServerList.get(node).__debug_showInfo();
+            // this.BEServerList.get(node).__debug_showInfo();
             if (this.BEServerList.get(node).getBECores() >= maxCoresFound) {
                 chosenBEServer = this.BEServerList.get(node);
                 maxCoresFound = this.BEServerList.get(node).getBECores();
+            }
+        }
+
+        return chosenBEServer;
+    }
+
+    // We belive that Most recently joined BEServer
+    // would be the Least Recently Used BEServer.
+    public BEServer.BEServerEntity getTheLRUBEServer() {
+        Long newestTime = Long.MAX_VALUE;
+        BEServer.BEServerEntity chosenBEServer = null;
+
+        System.out.println("[FEPasswordHandler] Picking a BEServer based on the most recently joined..");
+
+        for(int node = 0; node < this.BEServerList.size(); node++) {
+            if(this.BEServerList.get(node).getBEJoinTime() <= newestTime) {
+                System.out.println("a new beserver was found!");
+                chosenBEServer = this.BEServerList.get(node);
+                newestTime = this.BEServerList.get(node).getBEJoinTime();
             }
         }
 
@@ -51,10 +70,9 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-            System.out.println("going to the getthebestpossiblebeserver");
-            System.out.println("the beserverlist.size() = " + BEServerList.size());
+            // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
+            BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
 
-            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
             /*
                 Randomly pick a BEServer logic.
                 Random rand = new Random();
@@ -87,7 +105,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
-            BEServer.BEServerEntity chosenBEServer = getTheBestPossibleBEServer();
+            // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
+            BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
