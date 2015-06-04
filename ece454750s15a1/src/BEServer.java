@@ -33,6 +33,9 @@ public class BEServer {
     public static Integer ncores;
     public static String seed_string;
 
+    public static Long uptime;
+    public static PerfCounters perfManager = new PerfCounters();
+
     public static class BEServerEntity {
         public String nodeName;
         public Integer numCores;
@@ -194,7 +197,7 @@ public class BEServer {
             handler_password = new BEPasswordHandler();
             processor_password = new BEPassword.Processor(handler_password);
 
-            handler_management = new BEManagementHandler();
+            handler_management = new BEManagementHandler(perfManager, uptime);
             processor_management = new BEManagement.Processor(handler_management);
 
             if (args.length == 0) {
@@ -218,7 +221,7 @@ public class BEServer {
                 }
             };
 
-
+            uptime = System.currentTimeMillis();
 
             new Thread(simple_management).start();
             new Thread(simple_password).start();

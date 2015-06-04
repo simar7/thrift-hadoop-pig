@@ -122,18 +122,18 @@ public class A1Client {
             */
 
             TProtocol protocol_password = new TBinaryProtocol(transport_password);
-            // TProtocol protocol_management = new TBinaryProtocol(transport_management);
+            //TProtocol protocol_management = new TBinaryProtocol(transport_management);
 
             FEPassword.Client client_password = new FEPassword.Client(protocol_password);
-            // FEManagement.Client client_management = new FEManagement.Client(protocol_management);
+            //BEManagement.Client client_management = new BEManagement.Client(protocol_management);
 
             perform_password(client_password);
-            //perform_management(client_management);
+            //getBEPerfCounters(client_management);
 
             // TODO: Implement better client logic to only close
             // when fully done.
             transport_password.close();
-            // transport_management.close();
+            //transport_management.close();
 
         } catch (TException e) {
             e.printStackTrace();
@@ -151,5 +151,16 @@ public class A1Client {
 
         checkPassword = client_password.checkPassword("password_wrong", passwordHash);
         System.out.println("Check Password FAIL=" + checkPassword);
+    }
+
+    // Function to query performance counters
+    private static void getBEPerfCounters(BEManagement.Client client_management_beserver) throws TException {
+        PerfCounters perfCounters = new PerfCounters();
+        perfCounters = client_management_beserver.getPerfCounters();
+
+        System.out.println("[A1Client] ---- BE Performance Counters ----");
+        System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
+        System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
+        System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
     }
 }

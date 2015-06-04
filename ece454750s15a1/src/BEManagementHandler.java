@@ -11,31 +11,32 @@ import java.util.List;
 
 public class BEManagementHandler implements BEManagement.Iface {
 
-    private PerfCounters perfList;
+    private PerfCounters perfCounter = new PerfCounters();
+    private PerfCounters perfManager = null;
+    private Long uptime;
+
     private List<String> groupMembers;
 
-    public BEManagementHandler() {
-        perfList = new PerfCounters();
+    public BEManagementHandler(PerfCounters perfManager, Long uptime) {
+        this.perfManager = perfManager;
         groupMembers = Arrays.asList("s244sing", "cpinn");
     }
 
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
-        return perfList;
+        perfCounter.numSecondsUp = (int)(System.currentTimeMillis() - uptime);
+        perfCounter.numRequestsReceived = perfManager.numRequestsReceived;
+        perfCounter.numRequestsCompleted = perfManager.numRequestsCompleted;
+
+        return perfCounter;
     }
 
     // Return group member list.
     public List<String> getGroupMembers() {
-        return groupMembers;
+        return this.groupMembers;
     }
 
     // Other Interfaces
-
-    // Join Cluster Interface
-    public boolean joinCluster (String host, int pport, int mport, int ncores) {
-        // TODO: check if anything needs to be done?
-        return true;
-    }
 
     // Periodic Learning Interface
 

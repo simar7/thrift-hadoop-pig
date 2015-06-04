@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class FEServer {
 
@@ -40,6 +43,8 @@ public class FEServer {
 
     public static FEManagementHandler handler_sync_with_seed;
     public static FEManagement.Processor processor_sync_with_seed;
+
+    public static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     public static String host;
     public static Integer pport;
@@ -173,7 +178,6 @@ public class FEServer {
                 }
             };
 
-            //System.out.println("beserverlist inside of feserver = " + BEServerList.size());
             handler_password = new FEPasswordHandler(BEServerList);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
@@ -186,6 +190,7 @@ public class FEServer {
             new Thread(simple_management).start();
             new Thread(simple_password).start();
 
+            // Thread to sync FEServers with FESeed to get all the BEServer information.
             handler_sync_with_seed = new FEManagementHandler(BEServerList);
             processor_sync_with_seed = new FEManagement.Processor(handler_sync_with_seed);
             Runnable simple_sync_with_seed = new Runnable() {
@@ -195,11 +200,14 @@ public class FEServer {
                 }
             };
 
-            if(!checkIfSeedOrNot(mport)) {
+            if (checkIfSeedOrNot(mport)) {
+                System.out.println("[FESeed] Running the sync_with_seed thread...");
+            }
+            else {
                 System.out.println("[FEServer] Running the sync_with_seed thread...");
-                new Thread(simple_sync_with_seed).start();
             }
 
+            executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 5000, TimeUnit.MILLISECONDS);
         } catch (Exception x) {
             x.printStackTrace();
         }
@@ -261,24 +269,25 @@ public class FEServer {
 
     public static void simple_sync_with_seed(FEManagement.Processor processor_sync_with_seed) {
         try {
-            while(true) {
-                // Get a random server to connect to each time.
-                Random rand = new Random();
-                int randomSeedIndex = rand.nextInt(seedEntityList.size());
-                FEServer.SeedEntity seedEntity = seedEntityList.get(randomSeedIndex);
+            // Get a random server to connect to each time.
+            Random rand = new Random();
+            int randomSeedIndex = rand.nextInt(seedEntityList.size());
+            FEServer.SeedEntity seedEntity = seedEntityList.get(randomSeedIndex);
 
-                /* Print current members in the BEServerList
-                System.out.println("[FEServer] Old BEServerList");
-                printCurrentListOfBEs(BEServerList);
-                */
-
-                // Connect to the randomly picked seed.
+            // Connect to the randomly picked seed.
+            // Only connect from this FE entity to another if it's different.
+            if(seedEntity.getSeedPortNumber() != mport) {
                 TTransport transport_sync_with_seed;
-                System.out.println("[FEServer] Trying to start transport_sync_with_seed on port = " + seedEntity.getSeedPortNumber());
+                if(checkIfSeedOrNot(mport)){
+                    System.out.println("[FESeed] Gossiping with a seed on port = " + seedEntity.getSeedPortNumber());
+                }
+                else {
+                    System.out.println("[FEServer] Gossiping with a seed on port = " + seedEntity.getSeedPortNumber());
+
+                }
                 transport_sync_with_seed = new TSocket(seedEntity.getSeedHostName(), seedEntity.getSeedPortNumber());
                 transport_sync_with_seed.open();
 
-                // TODO : Parse args into a nice package before sending it to the FEManagementHandler.java
                 TProtocol protocol_sync_with_seed = new TBinaryProtocol(transport_sync_with_seed);
                 FEManagement.Client client_management_sync_with_seed = new FEManagement.Client(protocol_sync_with_seed);
 
@@ -291,20 +300,20 @@ public class FEServer {
                     }
                 }
 
-                /* Print the updated list of members in the BEServerList
-                System.out.println("[FEServer] New BEServerList");
-                printCurrentListOfBEs(BEServerList);
-                */
+                // Print the updated list of members in the BEServerList
+                if(checkIfSeedOrNot(mport)){
+                    System.out.println("[FESeed] This FESeed is currently aware of [" + BEServerList.size() + "] BEServers");
+                }
+                else {
+                    System.out.println("[FEServer] This FEServer is currently aware of [" + BEServerList.size() + "] BEServers");
+                }
 
                 transport_sync_with_seed.close();
-                Thread.sleep(8000);
             }
-
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+        }  catch (Exception e) {
+            // We currently get here if the other seeds have not started yet...
+            System.out.println("[FESeed] Waiting for other seeds in the system to start...");
+            //e.printStackTrace();
         }
         // Add logic to catch ServiceUnavailableException.
     }

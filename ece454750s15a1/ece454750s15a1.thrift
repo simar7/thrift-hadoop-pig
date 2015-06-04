@@ -41,12 +41,6 @@ service BEManagement {
     // Group member names interface.
     list<string> getGroupMembers()
 
-    bool joinCluster (
-        1: string host,
-        2: int32_t pport,
-        3: int32_t mport,
-        4: int32_t ncores,
-    )
 }
 
 

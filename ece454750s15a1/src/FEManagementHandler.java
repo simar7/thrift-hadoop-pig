@@ -70,7 +70,7 @@ public class FEManagementHandler implements FEManagement.Iface {
                     beServerListToReturn.add(Integer.toString(BEServerList.get(i).getBEPasswordPortNumber()));
                     beServerListToReturn.add(Integer.toString(BEServerList.get(i).getBEManagementPortNumber()));
                     beServerListToReturn.add(BEServerList.get(i).getBEHostName());
-                    BEServerList.get(i).__debug_showInfo();
+                    //BEServerList.get(i).__debug_showInfo();
                 } else {
                     System.out.println("[FEManagementHandler] No more relvant data to send!");
                 }
@@ -110,8 +110,8 @@ public class FEManagementHandler implements FEManagement.Iface {
 
         // clusterList.get(k).__debug_showInfo();
 
-        System.out.println("[FEManagement] The [" + nodeName + "]" + " was added to the cluster");
-        System.out.println("BEServerList.size() = " + BEServerList.size());
+        System.out.println("[FEManagement] The [" + nodeName + "." + host + "." + pport + "." + mport + "." + ncores + "]" + " was added to the cluster");
+        //System.out.println("BEServerList.size() = " + BEServerList.size());
         return true;
     }
 }
