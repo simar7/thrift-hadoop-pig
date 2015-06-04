@@ -85,8 +85,55 @@ public class FEServer {
         }
     }
 
+    public static class FEServerEntity {
+        public String nodeName;
+        public Integer numCores;
+        public String host;
+        public Integer passwordPort;
+        public Integer managementPort;
+
+        public FEServerEntity() {
+            this.nodeName = "UNSET";
+            this.numCores = null;
+            this.host = "UNSET";
+            this.passwordPort = null;
+            this.managementPort = null;
+        }
+
+        public FEServerEntity(String nodeName, Integer numCores, Integer passwordPort, Integer managementPort, String host) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = passwordPort;
+            this.managementPort = managementPort;
+            this.host = host;
+        }
+
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = pport;
+            this.managementPort = mport;
+            this.host = host;
+        }
+        public String[] getEntityFields() {
+            String[] FEServerArrRet = {this.nodeName, this.passwordPort.toString(), this.managementPort.toString()};
+            return FEServerArrRet;
+        }
+
+        public String getFEServerHostName() {
+            return this.host;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("FEServerHostName = " + this.host);
+            System.out.println("FEServerManagementPort = " + this.managementPort);
+            System.out.println("FEServerPasswordPort = " + this.passwordPort);
+        }
+    }
+
     public static CopyOnWriteArrayList<FEServer.SeedEntity> seedEntityList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
     public static CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = new CopyOnWriteArrayList<BEServer.BEServerEntity>();
+    public static CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList = new CopyOnWriteArrayList<FEServer.FEServerEntity>();
 
     public static List<String> getAllSeedPorts() {
         List<String> seedPortList = new ArrayList<String>();
@@ -166,10 +213,12 @@ public class FEServer {
             }
 
             // Uncomment this line to connect to FESeed.
-            //contactFESeed();
+            /*if (!checkIfSeedOrNot(mport)) {
+                contactFESeed();
+            }*/
 
             // TODO: Do we actually need a Management port for FEServers?
-            handler_management = new FEManagementHandler(BEServerList);
+            handler_management = new FEManagementHandler(BEServerList, FEServerList);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -191,7 +240,7 @@ public class FEServer {
             new Thread(simple_password).start();
 
             // Thread to sync FEServers with FESeed to get all the BEServer information.
-            handler_sync_with_seed = new FEManagementHandler(BEServerList);
+            handler_sync_with_seed = new FEManagementHandler(BEServerList, FEServerList);
             processor_sync_with_seed = new FEManagement.Processor(handler_sync_with_seed);
             Runnable simple_sync_with_seed = new Runnable() {
                 @Override
@@ -322,17 +371,20 @@ public class FEServer {
     // Only used if this is an actual FEServer and NOT a seed.
     private static void contactFESeed() throws TException {
         try {
+            Random rand = new Random();
+            int randomSeedIndex = rand.nextInt(seedEntityList.size());
+            FEServer.SeedEntity seedEntity = seedEntityList.get(randomSeedIndex);
+
             TTransport transport;
-            // FIXME: 9999 is the FESeed for now. fix it to param
-            transport = new TSocket("localhost", 9999);
+            transport = new TSocket(seedEntity.getSeedHostName(), seedEntity.getSeedPortNumber());
             transport.open();
 
-            // TODO : Parse args into a nice package before sending it to the FEManagementHandler.java
             TProtocol protocol = new TBinaryProtocol(transport);
             FEManagement.Client client_management = new FEManagement.Client(protocol);
 
-            // FIXME: dont hardcode set it to its own port numbers
-            boolean joinResult = client_management.joinCluster("FEServer", "localhost", 9090, 9091, 2);
+            boolean joinResult = client_management.joinCluster("FEServer", "localhost", pport, mport, ncores);
+
+
             if (joinResult) {
                 System.out.println("The FE Server was added to the cluster.");
             } else {

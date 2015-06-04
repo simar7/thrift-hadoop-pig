@@ -52,12 +52,60 @@ public class FEManagementHandler implements FEManagement.Iface {
         }
     }
 
+     public static class FEServerEntity {
+        public String nodeName;
+        public Integer numCores;
+        public String host;
+        public Integer passwordPort;
+        public Integer managementPort;
+
+        public FEServerEntity() {
+            this.nodeName = "UNSET";
+            this.numCores = null;
+            this.host = "UNSET";
+            this.passwordPort = null;
+            this.managementPort = null;
+        }
+
+        public FEServerEntity(String nodeName, Integer numCores, Integer passwordPort, Integer managementPort, String host) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = passwordPort;
+            this.managementPort = managementPort;
+            this.host = host;
+        }
+
+        public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores) {
+            this.nodeName = nodeName;
+            this.numCores = numCores;
+            this.passwordPort = pport;
+            this.managementPort = mport;
+            this.host = host;
+        }
+        public String[] getEntityFields() {
+            String[] FEServerArrRet = {this.nodeName, this.passwordPort.toString(), this.managementPort.toString()};
+            return FEServerArrRet;
+        }
+
+        public String getFEServerHostName() {
+            return this.host;
+        }
+
+        public void __debug_showInfo() {
+            System.out.println("FEServerHostName = " + this.host);
+            System.out.println("FEServerManagementPort = " + this.managementPort);
+            System.out.println("FEServerPasswordPort = " + this.passwordPort);
+        }
+    }
+
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
+    private CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList = null;
     private CopyOnWriteArrayList<FEServer.SeedEntity> seedList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
 
-    public FEManagementHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
+    public FEManagementHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList) {
         this.BEServerList = BEServerList;
         //this.seedList = seedList;
+        this.FEServerList = FEServerList;
     }
 
     public List<String> getBEServerList() {
@@ -102,10 +150,19 @@ public class FEManagementHandler implements FEManagement.Iface {
     // Join Cluster Interface
     public boolean joinCluster (String nodeName, String host, int pport, int mport, int ncores) throws TException {
         // Add incoming stuff to the ConcurrentList.
-        BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity();
-        BEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores);
-        if(!BEServerList.contains(BEServerEntityToAdd)) {
-            BEServerList.add(BEServerEntityToAdd);
+        if(nodeName.equals("BEServer")) {
+            BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity();
+            BEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores);
+            if(!BEServerList.contains(BEServerEntityToAdd)) {
+                BEServerList.add(BEServerEntityToAdd);
+            }
+        } else if (nodeName.equals("FEServer")) {
+            //System.out.println("TESTING " + nodeName + host+ pport+ mport+ncores);
+            FEServer.FEServerEntity FEServerEntityToAdd = new FEServer.FEServerEntity();
+            FEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores);
+            if(!FEServerList.contains(FEServerEntityToAdd)) {
+                FEServerList.add(FEServerEntityToAdd);
+            }
         }
 
         // clusterList.get(k).__debug_showInfo();
