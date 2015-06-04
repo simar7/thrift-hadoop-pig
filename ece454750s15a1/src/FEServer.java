@@ -259,7 +259,7 @@ public class FEServer {
                 System.out.println("[FEServer] Running the sync_with_seed thread...");
             }
 
-            handler_heartbeat = new FEManagementHandler(BEServerList);
+            handler_heartbeat = new FEManagementHandler(BEServerList, FEServerList);
             processor_heartbeat = new FEManagement.Processor(handler_heartbeat);
             Runnable simple_heartbeat = new Runnable() {
                 @Override
