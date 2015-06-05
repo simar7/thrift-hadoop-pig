@@ -55,6 +55,9 @@ public class FEServer {
     public static Integer ncores;
     public static String seed_string;
 
+    public static Long uptime;
+    public static PerfCounters perfManager = new PerfCounters();
+
     public static class SeedEntity {
         public String seedHostName;
         public Integer seedPort;
@@ -220,8 +223,10 @@ public class FEServer {
                 contactFESeed();
             }*/
 
+            uptime = System.currentTimeMillis();
+
             // TODO: Do we actually need a Management port for FEServers?
-            handler_management = new FEManagementHandler(BEServerList, FEServerList);
+            handler_management = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -230,7 +235,7 @@ public class FEServer {
                 }
             };
 
-            handler_password = new FEPasswordHandler(BEServerList);
+            handler_password = new FEPasswordHandler(BEServerList, perfManager);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
@@ -243,7 +248,7 @@ public class FEServer {
             new Thread(simple_password).start();
 
             // Thread to sync FEServers with FESeed to get all the BEServer information.
-            handler_sync_with_seed = new FEManagementHandler(BEServerList, FEServerList);
+            handler_sync_with_seed = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_sync_with_seed = new FEManagement.Processor(handler_sync_with_seed);
             Runnable simple_sync_with_seed = new Runnable() {
                 @Override
@@ -259,7 +264,7 @@ public class FEServer {
                 System.out.println("[FEServer] Running the sync_with_seed thread...");
             }
 
-            handler_heartbeat = new FEManagementHandler(BEServerList, FEServerList);
+            handler_heartbeat = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_heartbeat = new FEManagement.Processor(handler_heartbeat);
             Runnable simple_heartbeat = new Runnable() {
                 @Override
@@ -299,7 +304,11 @@ public class FEServer {
 
             // This is FEServer
             if (!checkIfSeedOrNot(mport)) {
-                // Some management logic for FEServer
+                // Experiment 1: TThreadedPoolServer
+                TServerTransport serverTransport = new TServerSocket(mport);
+                TServer server = new TThreadPoolServer(
+                        new TThreadPoolServer.Args(serverTransport).processor(processor_management));
+                server.serve();
             }
 
         } catch (Exception e) {

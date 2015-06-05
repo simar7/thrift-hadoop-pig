@@ -16,9 +16,11 @@ import java.util.Random;
 public class FEPasswordHandler implements FEPassword.Iface {
 
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
+    private PerfCounters perfCounter = new PerfCounters();
 
-    public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
+    public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, PerfCounters perfCounter) {
         this.BEServerList = BEServerList;
+        this.perfCounter = perfCounter;
     }
 
     public BEServer.BEServerEntity getTheHighestCoreServer() {
@@ -66,6 +68,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
             System.out.println("[FEPasswordHandler] Hashing Password...");
             System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
+            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
 
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
@@ -90,6 +93,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
             transport_password_fepassword.close();
 
             System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
+            perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
             return hashedPassword;
 
         } catch (Exception e) {  // Oh noez! The BEServer has crashed!
@@ -115,15 +119,18 @@ public class FEPasswordHandler implements FEPassword.Iface {
             BEPassword.Client client = new BEPassword.Client(protocol);
 
             System.out.println("[FEPasswordHandler] Checking Password: " + password);
+            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
 
             boolean result = client.checkPassword(password, hash);
             if (result) {
                 System.out.println("[FEPasswordHandler] Password Match.");
                 transport_password_fepassword.close();
+                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
                 return true;
             } else {
                 System.out.println("[FEPasswordHandler] Password Does Not Match.");
                 transport_password_fepassword.close();
+                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
                 return false;
             }
         } catch (Exception e) {
