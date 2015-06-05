@@ -16,9 +16,11 @@ import java.util.Random;
 public class FEPasswordHandler implements FEPassword.Iface {
 
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
+    private FEManagementHandler handler;
 
-    public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList) {
+    public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, FEManagementHandler handler) {
         this.BEServerList = BEServerList;
+        this.handler = handler;
     }
 
     public BEServer.BEServerEntity getTheHighestCoreServer() {
@@ -63,7 +65,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         try {
             String hashedPassword = null;
-
+            handler.perfCounter.numRequestsReceived++;
             System.out.println("[FEPasswordHandler] Hashing Password...");
             System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
 
@@ -104,7 +106,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
         try {
             //Random rand = new Random();
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
-
+            handler.perfCounter.numRequestsReceived++;
             // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
             BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
 
@@ -119,10 +121,12 @@ public class FEPasswordHandler implements FEPassword.Iface {
             boolean result = client.checkPassword(password, hash);
             if (result) {
                 System.out.println("[FEPasswordHandler] Password Match.");
+                handler.perfCounter.numRequestsCompleted++;
                 transport_password_fepassword.close();
                 return true;
             } else {
                 System.out.println("[FEPasswordHandler] Password Does Not Match.");
+                handler.perfCounter.numRequestsCompleted++;
                 transport_password_fepassword.close();
                 return false;
             }

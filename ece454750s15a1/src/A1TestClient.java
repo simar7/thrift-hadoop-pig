@@ -131,6 +131,11 @@ public class A1TestClient {
                 transport_management = new TSocket("localhost", 11237);
                 transport_management.open();
 
+                TTransport transport_fe_management;
+                System.out.println("Trying to start transport_fe_management on mport = " + mport);
+                transport_fe_management = new TSocket("localhost", mport);
+                transport_fe_management.open();
+
                 /*TTransport transport_be_password;
                 System.out.println("Trying to start transport_be_password on mport = " + 11238);
                 transport_be_password = new TSocket("localhost", 11238);
@@ -138,18 +143,22 @@ public class A1TestClient {
 
                 TProtocol protocol_password = new TBinaryProtocol(transport_password);
                 TProtocol protocol_management = new TBinaryProtocol(transport_management);
+                TProtocol protocol_fe_management = new TBinaryProtocol(transport_fe_management);
 
                 FEPassword.Client client_password = new FEPassword.Client(protocol_password);
                 BEManagement.Client client_management = new BEManagement.Client(protocol_management);
+                FEManagement.Client client_fe_management = new FEManagement.Client(protocol_fe_management);
 
                 perform_password(client_password);
                 //System.out.println("perf performance");
                 getBEPerfCounters(client_management);
+                getFEPerfCounters(client_fe_management);
 
                 // TODO: Implement better client logic to only close
                 // when fully done.
                 transport_password.close();
                 transport_management.close();
+                transport_fe_management.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -177,6 +186,19 @@ public class A1TestClient {
         perfCounters = client_management_beserver.getPerfCounters();
 
         System.out.println("[A1Client] ---- BE Performance Counters ----");
+        System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
+        System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
+        System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
+    }
+
+    private static void getFEPerfCounters(FEManagement.Client client_management_feserver) throws TException {
+        //System.out.println(client_management_beserver);
+        PerfCounters perfCounters = new PerfCounters();
+        //String str = client_management_beserver.hashPassword("pas", (short) 10);
+        //System.out.println("connection=" + str);
+        perfCounters = client_management_feserver.getPerfCounters();
+
+        System.out.println("[A1Client] ---- FE Performance Counters ----");
         System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
         System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
         System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);

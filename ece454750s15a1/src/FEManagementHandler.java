@@ -102,11 +102,13 @@ public class FEManagementHandler implements FEManagement.Iface {
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
     private CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList = null;
     private CopyOnWriteArrayList<FEServer.SeedEntity> seedList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
+    public PerfCounters perfCounter = new PerfCounters();
 
     public FEManagementHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList) {
         this.BEServerList = BEServerList;
         //this.seedList = seedList;
         this.FEServerList = FEServerList;
+
     }
 
     public List<String> getBEServerList() {
@@ -134,8 +136,8 @@ public class FEManagementHandler implements FEManagement.Iface {
 
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
-        PerfCounters perfList = new PerfCounters();
-        return perfList;
+
+        return perfCounter;
     }
 
     // Return group member list.

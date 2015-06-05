@@ -230,7 +230,7 @@ public class FEServer {
                 }
             };
 
-            handler_password = new FEPasswordHandler(BEServerList);
+            handler_password = new FEPasswordHandler(BEServerList, handler_management);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
