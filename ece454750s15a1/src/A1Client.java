@@ -131,7 +131,7 @@ public class A1Client {
 
             while (i != 100) {
                 perform_password(client_password_feserver);
-                RequestsSent++;
+                RequestsSent = RequestsSent + 3;
                 // TODO: Implement better client logic to only close
                 // when fully done.
                 i++;

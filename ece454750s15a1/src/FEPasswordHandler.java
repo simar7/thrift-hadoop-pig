@@ -63,18 +63,11 @@ public class FEPasswordHandler implements FEPassword.Iface {
     }
 
     public BEServer.BEServerEntity getRandomBEServer() {
-        Long newestTime = Long.MAX_VALUE;
-        BEServer.BEServerEntity chosenBEServer = null;
+        System.out.println("[FEPasswordHandler] Picking a random BEServer..");
 
-        System.out.println("[FEPasswordHandler] Picking a BEServer based on the most recently joined..");
-
-        for(int node = 0; node < this.BEServerList.size(); node++) {
-            if(this.BEServerList.get(node).getBEJoinTime() <= newestTime) {
-                System.out.println("a new beserver was found!");
-                chosenBEServer = this.BEServerList.get(node);
-                newestTime = this.BEServerList.get(node).getBEJoinTime();
-            }
-        }
+        Random rand = new Random();
+        int beserverindex = rand.nextInt(BEServerList.size());
+        BEServer.BEServerEntity chosenBEServer = this.BEServerList.get(beserverindex);
 
         return chosenBEServer;
     }
@@ -87,18 +80,10 @@ public class FEPasswordHandler implements FEPassword.Iface {
             System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
             perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
 
-            //Random rand = new Random();
-            //int randomBEServerIndex = rand.nextInt(BEServerList.size());
-
             // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-            BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+            //BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
 
-            /*
-                Randomly pick a BEServer logic.
-                Random rand = new Random();
-                int beserverindex = rand.nextInt(BEServerList.size());
-                BEServer.BEServerEntity chosenBEServer = BEServerList.get(beserverindex);
-             */
+            BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
@@ -115,7 +100,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
         } catch (Exception e) {  // Oh noez! The BEServer has crashed!
             // e.printStackTrace();
-
+            hashPassword(password, logRounds);
         }
         // should never get here
         return null;
@@ -127,7 +112,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
             // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-            BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+            // BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+            BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
 
             TTransport transport_password_fepassword;
             transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
@@ -151,7 +137,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
                 return false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            checkPassword(password, hash);
         }
         return false;
     }
