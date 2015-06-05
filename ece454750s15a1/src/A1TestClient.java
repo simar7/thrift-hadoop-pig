@@ -107,10 +107,12 @@ public class A1TestClient {
         }
 
         A1TestClient.parseArgs(args);
-        while(true) {
+        int i = 0;
+        while(i < 40) {
             try {
                 sendPass();
                 //Thread.sleep(1000);
+                i++;
             }catch (Exception e) {
                e.printStackTrace();
             }
@@ -127,14 +129,14 @@ public class A1TestClient {
 
                 
                 TTransport transport_management;
-                System.out.println("Trying to start transport_management on mport = " + 11237);
-                transport_management = new TSocket("localhost", 11237);
+                System.out.println("Trying to start transport_management on mport = " + 18217);
+                transport_management = new TSocket("localhost", 18217);
                 transport_management.open();
 
-                TTransport transport_fe_management;
+                /*TTransport transport_fe_management;
                 System.out.println("Trying to start transport_fe_management on mport = " + mport);
                 transport_fe_management = new TSocket("localhost", mport);
-                transport_fe_management.open();
+                transport_fe_management.open();*/
 
                 /*TTransport transport_be_password;
                 System.out.println("Trying to start transport_be_password on mport = " + 11238);
@@ -143,22 +145,22 @@ public class A1TestClient {
 
                 TProtocol protocol_password = new TBinaryProtocol(transport_password);
                 TProtocol protocol_management = new TBinaryProtocol(transport_management);
-                TProtocol protocol_fe_management = new TBinaryProtocol(transport_fe_management);
+                //TProtocol protocol_fe_management = new TBinaryProtocol(transport_fe_management);
 
                 FEPassword.Client client_password = new FEPassword.Client(protocol_password);
                 BEManagement.Client client_management = new BEManagement.Client(protocol_management);
-                FEManagement.Client client_fe_management = new FEManagement.Client(protocol_fe_management);
+                //FEManagement.Client client_fe_management = new FEManagement.Client(protocol_fe_management);
 
                 perform_password(client_password);
                 //System.out.println("perf performance");
                 getBEPerfCounters(client_management);
-                getFEPerfCounters(client_fe_management);
+               // getFEPerfCounters(client_fe_management);
 
                 // TODO: Implement better client logic to only close
                 // when fully done.
                 transport_password.close();
                 transport_management.close();
-                transport_fe_management.close();
+                //transport_fe_management.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -199,7 +201,7 @@ public class A1TestClient {
         perfCounters = client_management_feserver.getPerfCounters();
 
         System.out.println("[A1Client] ---- FE Performance Counters ----");
-        System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
+        //System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
         System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
         System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
     }

@@ -212,6 +212,8 @@ public class BEServer {
     public static void main(String[] args) {
         try{
 
+            uptime = System.currentTimeMillis();
+
             handler_management = new BEManagementHandler(perfManager, uptime);
             processor_management = new BEManagement.Processor(handler_management);
 
@@ -244,8 +246,6 @@ public class BEServer {
                     contactFESeed();
                 }
             };
-
-            uptime = System.currentTimeMillis();
 
             new Thread(simple_management).start();
             new Thread(simple_password).start();

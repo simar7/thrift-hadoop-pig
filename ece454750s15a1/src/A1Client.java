@@ -122,19 +122,17 @@ public class A1Client {
             transport_management_feserver.open();
 
             TTransport transport_management_beserver;
-            System.out.println("Trying to start transport_management on mport WTF= " + 11237);
+            System.out.println("Trying to start transport_management on mport = " + 11237);
             transport_management_beserver = new TSocket("localhost", 11237);
             transport_management_beserver.open();
 
 
             TProtocol protocol_password_feserver = new TBinaryProtocol(transport_password_feserver);
             TProtocol protocol_management_feserver = new TBinaryProtocol(transport_management_feserver);
-            
             TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
 
             FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
             FEManagement.Client client_management_feserver = new FEManagement.Client(protocol_management_feserver);
-            
             BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
 
 
@@ -147,7 +145,7 @@ public class A1Client {
             }
             // close both feserver interfaces
             System.out.println("actual requests sent were = " + RequestsSent);
-            //getFEPerfCounters(client_management_feserver);
+            getFEPerfCounters(client_management_feserver);
             getBEPerfCounters(client_management_beserver);
 
             transport_management_feserver.close();
