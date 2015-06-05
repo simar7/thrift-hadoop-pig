@@ -23,6 +23,7 @@ public class A1Client {
     public static Integer mport;
     public static Integer ncores;
     public static String seed_string;
+    public static Integer RequestsSent = 0;
 
     public static class SeedEntity {
         public String  seedHostName;
@@ -100,73 +101,81 @@ public class A1Client {
     }
 
     public static void main(String [] args) {
-
-        if (args.length == 0) {
-            System.out.print("Usage:");
-            helpMenu();
-        }
-
-        A1Client.parseArgs(args);
-        while(true) {
-            try {
-                sendPass();
-                //Thread.sleep(1000);
-            }catch (Exception e) {
-               e.printStackTrace();
+        try {
+            if (args.length == 0) {
+                System.out.print("Usage:");
+                helpMenu();
             }
-            
-        }
-    }
-    
-    private static void sendPass() {
-        try{
-            TTransport transport_password;
-                System.out.println("Trying to start transport_password on pport = " + pport);
-                transport_password = new TSocket("localhost", pport);
-                transport_password.open();
 
-                /*
-                TTransport transport_management;
-                System.out.println("Trying to start transport_management on mport = " + mport);
-                transport_management = new TSocket("localhost", mport);
-                transport_management.open();
-                */
+            A1Client.parseArgs(args);
+            int i = 0;
 
-                TProtocol protocol_password = new TBinaryProtocol(transport_password);
-                //TProtocol protocol_management = new TBinaryProtocol(transport_management);
+            TTransport transport_password_feserver;
+            System.out.println("Trying to start transport_password on pport = " + pport);
+            transport_password_feserver = new TSocket("localhost", pport);
+            transport_password_feserver.open();
 
-                FEPassword.Client client_password = new FEPassword.Client(protocol_password);
-                //BEManagement.Client client_management = new BEManagement.Client(protocol_management);
 
-                perform_password(client_password);
-                //getBEPerfCounters(client_management);
+            TTransport transport_management_feserver;
+            System.out.println("Trying to start transport_management on mport = " + mport);
+            transport_management_feserver = new TSocket("localhost", mport);
+            transport_management_feserver.open();
 
+
+            TProtocol protocol_password_feserver = new TBinaryProtocol(transport_password_feserver);
+            TProtocol protocol_management_feserver = new TBinaryProtocol(transport_management_feserver);
+
+            FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
+            FEManagement.Client client_management_feserver = new FEManagement.Client(protocol_management_feserver);
+
+
+            while (i != 100) {
+                perform_password(client_password_feserver);
+                RequestsSent++;
                 // TODO: Implement better client logic to only close
                 // when fully done.
-                transport_password.close();
-                //transport_management.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+                i++;
             }
+            // close both feserver interfaces
+            System.out.println("actual requests sent were = " + RequestsSent);
+            getFEPerfCounters(client_management_feserver);
+
+            transport_management_feserver.close();
+            transport_password_feserver.close();
+
+
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // This fucntion sends stuff to the servers via the handlers.
-    private static void perform_password(FEPassword.Client client_password) throws TException {
+    private static void perform_password(FEPassword.Client client_password_feserver) throws TException {
 
-        String passwordHash = client_password.hashPassword("password", (short) 10);
+        String passwordHash = client_password_feserver.hashPassword("password", (short) 10);
         System.out.println("Password Hash=" + passwordHash);
 
-        boolean checkPassword = client_password.checkPassword("password", passwordHash);
+        boolean checkPassword = client_password_feserver.checkPassword("password", passwordHash);
         System.out.println("Check Password PASS=" + checkPassword);
 
-        checkPassword = client_password.checkPassword("password_wrong", passwordHash);
+        checkPassword = client_password_feserver.checkPassword("password_wrong", passwordHash);
         System.out.println("Check Password FAIL=" + checkPassword);
     }
 
     // Function to query performance counters
+
+    private static void getFEPerfCounters(FEManagement.Client client_management_feserver) throws TException {
+        PerfCounters perfCounters = new PerfCounters();
+        perfCounters = client_management_feserver.getPerfCounters();
+
+        System.out.println("[A1Client] ---- FE Performance Counters ----");
+        System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
+        System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
+        System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
+    }
+
     private static void getBEPerfCounters(BEManagement.Client client_management_beserver) throws TException {
         PerfCounters perfCounters = new PerfCounters();
-        
         perfCounters = client_management_beserver.getPerfCounters();
 
         System.out.println("[A1Client] ---- BE Performance Counters ----");

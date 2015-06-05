@@ -4,7 +4,8 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.*;
+import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.TException;
@@ -339,7 +340,10 @@ public class FEServer {
                 // Part 0: Open a server socket to receive requests from the client.
                 System.out.println("[FEServer] Now listening to client requests on pport = " + pport);
 
+                // Experiment 1: TThreadedPoolServer
                 TServerTransport serverTransport = new TServerSocket(pport);
+                TServer server = new TThreadPoolServer(
+                        new TThreadPoolServer.Args(serverTransport).processor(processor_password));
 
                 TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport);
                 args.protocolFactory(new TBinaryProtocol.Factory());

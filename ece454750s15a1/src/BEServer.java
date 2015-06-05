@@ -215,7 +215,7 @@ public class BEServer {
             handler_management = new BEManagementHandler(perfManager, uptime);
             processor_management = new BEManagement.Processor(handler_management);
 
-            handler_password = new BEPasswordHandler(handler_management);
+            handler_password = new BEPasswordHandler(perfManager);
             processor_password = new BEPassword.Processor(handler_password);
 
             if (args.length == 0) {
@@ -313,7 +313,7 @@ public class BEServer {
                 //e.printStackTrace();
                 System.out.println("[BEServer] Waiting for FESeed to connect to...");
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (Exception x) {
                     // should never really happen..
                     x.printStackTrace();

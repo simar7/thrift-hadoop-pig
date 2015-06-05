@@ -11,21 +11,19 @@ import java.lang.System;
 public class BEPasswordHandler implements BEPassword.Iface {
     
     private PerfCounters perfCounter = new PerfCounters();
-    BEManagementHandler handler;
 
-    public BEPasswordHandler(BEManagementHandler handler) {
-        this.handler = handler;
+    public BEPasswordHandler(PerfCounters perfCounter) {
+        this.perfCounter = perfCounter;
     }
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         try {
-            handler.perfCounter.numRequestsReceived++;
             System.out.println("[BEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
-
+            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
             String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
+            perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
             System.out.println("[BEPasswordHandler] hashedString = " + hashedString);
             if (hashedString.length() != 0) {
-                handler.perfCounter.numRequestsCompleted++;
                 return hashedString;
             }
         }
@@ -40,16 +38,16 @@ public class BEPasswordHandler implements BEPassword.Iface {
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
         try {
-            handler.perfCounter.numRequestsReceived++;
+            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
             boolean result = BCrypt.checkpw(password, hash);
             if (result) {
                 System.out.println("[BEPasswordHandler] Password Matches.");
-                handler.perfCounter.numRequestsCompleted++;
+                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
                 return true;
             }
             else {
                 System.out.println("[BEPasswordHandler] Password Mismatch");
-                handler.perfCounter.numRequestsCompleted++;
+                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
                 return false;
             }
         } catch (Exception e) {
