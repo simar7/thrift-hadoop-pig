@@ -100,7 +100,18 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
         } catch (Exception e) {  // Oh noez! The BEServer has crashed!
             // e.printStackTrace();
-            hashPassword(password, logRounds);
+            try {
+                if (BEServerList.size() != 0) {
+                    System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
+                    hashPassword(password, logRounds);
+                } else {
+                    throw new TException();
+                }
+            } catch (Exception x) {
+                System.out.println("[FEPasswordHandler] No BEServers in the list to re-route to!");
+                x.printStackTrace();
+            }
+
         }
         // should never get here
         return null;
@@ -138,7 +149,17 @@ public class FEPasswordHandler implements FEPassword.Iface {
             }
         } catch (Exception e) {
             //e.printStackTrace();
-            checkPassword(password, hash);
+            try {
+                if (BEServerList.size() != 0) {
+                    System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
+                    checkPassword(password, hash);
+                } else {
+                    throw new TException();
+                }
+            } catch (Exception x) {
+                System.out.println("[FEPasswordHandler] No BEServers in the list to re-route to!");
+                x.printStackTrace();
+            }
         }
         return false;
     }
