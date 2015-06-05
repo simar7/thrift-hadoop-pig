@@ -351,7 +351,6 @@ public class FEServer {
                 args.processorFactory(new TProcessorFactory(processor_password));
                 args.minWorkerThreads(ncores);
 
-                TThreadPoolServer server = new TThreadPoolServer(args);
                 server.serve();
             } else { // This is FESeed
                 System.out.println("[FESeed] Password port in FESeed is not programmed.");

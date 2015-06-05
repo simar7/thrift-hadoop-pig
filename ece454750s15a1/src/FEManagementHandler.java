@@ -146,12 +146,6 @@ public class FEManagementHandler implements FEManagement.Iface {
         return null;
     }
 
-    // Return performance metrics.
-    public PerfCounters getPerfCounters() {
-        PerfCounters perfList = new PerfCounters();
-        return perfList;
-    }
-
     // Return group member list.
     public List<String> getGroupMembers() {
         ArrayList<String> groupMembers = new ArrayList<String>();
