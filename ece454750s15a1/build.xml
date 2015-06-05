@@ -57,8 +57,7 @@
 
     <!-- target name="ece454750s15a1" description="Run the ece454750s15a1" -->
     <!-- unfortunately ecelinux doesn't allow java heap to be increased without actually running the java program...
-    command to test in ecelinux is for example: java -Xmx128M -cp "ece454750s15a1.jar:../lib/*" BEServer -host ecelinux1 
-    -pport 51234 -mport 51235 -ncores 2 -seeds ecelinux1:9999 -->
+    command to test in ecelinux is for example: java -Xmx128M -cp "ece454750s15a1.jar:../lib/*" BEServer -host ecelinux1 -pport 51234 -mport 51235 -ncores 2 -seeds ecelinux1:9999 -->
     <target name="ece454750s15a1"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
@@ -150,7 +149,7 @@
             <echo>[ece454750s15a1] FESeed</echo>
             <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false">
-                <arg line="-host localhost -mport 9999 -ncores 2 -seeds localhost:9999"/>
+                <arg line="-host localhost -pport 11236 -mport 9999 -ncores 2 -seeds localhost:9999"/>
             </java>
 
             <echo>[ece454750s15a1] BEServer</echo>
@@ -192,6 +191,14 @@
         <java classname="A1Client"
               classpathref="ece454750s15a1.classpath" failonerror="true">
             <arg line="-host localhost -pport 41238 -mport 41239 -ncores 2 -seeds localhost:29999,localhost:49999"/>
+        </java>
+    </target>
+
+     <target name="testclient" description="Run a ece454750s15a1 testclient" depends="compile">
+        <echo>ece454750s15a1 client simple:</echo>
+        <java classname="A1TestClient"
+              classpathref="ece454750s15a1.classpath" failonerror="true">
+            <arg line="-host localhost -pport 41236 -mport 41237 -ncores 2 -seeds localhost:29999,localhost:49999"/>
         </java>
     </target>
 

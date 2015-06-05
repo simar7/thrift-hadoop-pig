@@ -9,14 +9,23 @@ import java.lang.Exception;
 import java.lang.System;
 
 public class BEPasswordHandler implements BEPassword.Iface {
+    
+    private PerfCounters perfCounter = new PerfCounters();
+    BEManagementHandler handler;
+
+    public BEPasswordHandler(BEManagementHandler handler) {
+        this.handler = handler;
+    }
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         try {
+            handler.perfCounter.numRequestsReceived++;
             System.out.println("[BEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
 
             String hashedString = BCrypt.hashpw(password, BCrypt.gensalt(logRounds));
             System.out.println("[BEPasswordHandler] hashedString = " + hashedString);
             if (hashedString.length() != 0) {
+                handler.perfCounter.numRequestsCompleted++;
                 return hashedString;
             }
         }
@@ -31,13 +40,16 @@ public class BEPasswordHandler implements BEPassword.Iface {
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
         try {
+            handler.perfCounter.numRequestsReceived++;
             boolean result = BCrypt.checkpw(password, hash);
             if (result) {
                 System.out.println("[BEPasswordHandler] Password Matches.");
+                handler.perfCounter.numRequestsCompleted++;
                 return true;
             }
             else {
                 System.out.println("[BEPasswordHandler] Password Mismatch");
+                handler.perfCounter.numRequestsCompleted++;
                 return false;
             }
         } catch (Exception e) {

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 
-public class A1Client {
+public class A1TestClient {
 
     public static String host;
     public static Integer pport;
@@ -106,7 +106,7 @@ public class A1Client {
             helpMenu();
         }
 
-        A1Client.parseArgs(args);
+        A1TestClient.parseArgs(args);
         while(true) {
             try {
                 sendPass();
@@ -120,31 +120,36 @@ public class A1Client {
     
     private static void sendPass() {
         try{
-            TTransport transport_password;
+                TTransport transport_password;
                 System.out.println("Trying to start transport_password on pport = " + pport);
                 transport_password = new TSocket("localhost", pport);
                 transport_password.open();
 
-                /*
+                
                 TTransport transport_management;
-                System.out.println("Trying to start transport_management on mport = " + mport);
-                transport_management = new TSocket("localhost", mport);
+                System.out.println("Trying to start transport_management on mport = " + 11237);
+                transport_management = new TSocket("localhost", 11237);
                 transport_management.open();
-                */
+
+                /*TTransport transport_be_password;
+                System.out.println("Trying to start transport_be_password on mport = " + 11238);
+                transport_be_password = new TSocket("localhost", 11238);
+                transport_be_password.open();*/
 
                 TProtocol protocol_password = new TBinaryProtocol(transport_password);
-                //TProtocol protocol_management = new TBinaryProtocol(transport_management);
+                TProtocol protocol_management = new TBinaryProtocol(transport_management);
 
                 FEPassword.Client client_password = new FEPassword.Client(protocol_password);
-                //BEManagement.Client client_management = new BEManagement.Client(protocol_management);
+                BEManagement.Client client_management = new BEManagement.Client(protocol_management);
 
                 perform_password(client_password);
-                //getBEPerfCounters(client_management);
+                //System.out.println("perf performance");
+                getBEPerfCounters(client_management);
 
                 // TODO: Implement better client logic to only close
                 // when fully done.
                 transport_password.close();
-                //transport_management.close();
+                transport_management.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -165,8 +170,10 @@ public class A1Client {
 
     // Function to query performance counters
     private static void getBEPerfCounters(BEManagement.Client client_management_beserver) throws TException {
+        //System.out.println(client_management_beserver);
         PerfCounters perfCounters = new PerfCounters();
-        
+        //String str = client_management_beserver.hashPassword("pas", (short) 10);
+        //System.out.println("connection=" + str);
         perfCounters = client_management_beserver.getPerfCounters();
 
         System.out.println("[A1Client] ---- BE Performance Counters ----");

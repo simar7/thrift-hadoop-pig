@@ -11,22 +11,24 @@ import java.util.List;
 
 public class BEManagementHandler implements BEManagement.Iface {
 
-    private PerfCounters perfCounter = new PerfCounters();
-    private PerfCounters perfManager = null;
+    public PerfCounters perfCounter = new PerfCounters();
+    //private PerfCounters perfManager = null;
     private Long uptime;
 
     private List<String> groupMembers;
 
     public BEManagementHandler(PerfCounters perfManager, Long uptime) {
-        this.perfManager = perfManager;
+        this.perfCounter = perfManager;
         groupMembers = Arrays.asList("s244sing", "cpinn");
+        this.uptime = uptime;
     }
 
     // Return performance metrics.
     public PerfCounters getPerfCounters() {
-        perfCounter.numSecondsUp = (int)(System.currentTimeMillis() - uptime);
-        perfCounter.numRequestsReceived = perfManager.numRequestsReceived;
-        perfCounter.numRequestsCompleted = perfManager.numRequestsCompleted;
+        System.out.println("BE Perf counters");
+        //perfCounter = handler.getPerfCounters();
+        //perfCounter.numSecondsUp = (int)(System.currentTimeMillis() - uptime);
+        
 
         return perfCounter;
     }

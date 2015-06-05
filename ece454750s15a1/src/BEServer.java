@@ -218,11 +218,11 @@ public class BEServer {
     public static void main(String[] args) {
         try{
 
-            handler_password = new BEPasswordHandler();
-            processor_password = new BEPassword.Processor(handler_password);
-
             handler_management = new BEManagementHandler(perfManager, uptime);
             processor_management = new BEManagement.Processor(handler_management);
+
+            handler_password = new BEPasswordHandler(handler_management);
+            processor_password = new BEPassword.Processor(handler_password);
 
             if (args.length == 0) {
                 System.out.print("Usage:");

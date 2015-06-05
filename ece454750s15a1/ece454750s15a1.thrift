@@ -31,6 +31,7 @@ service BEPassword {
         1: ServiceUnavailableException e
     )
 
+
 }
 
 service BEManagement {
