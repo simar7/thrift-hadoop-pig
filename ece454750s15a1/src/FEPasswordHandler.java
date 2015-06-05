@@ -62,6 +62,23 @@ public class FEPasswordHandler implements FEPassword.Iface {
         return chosenBEServer;
     }
 
+    public BEServer.BEServerEntity getRandomBEServer() {
+        Long newestTime = Long.MAX_VALUE;
+        BEServer.BEServerEntity chosenBEServer = null;
+
+        System.out.println("[FEPasswordHandler] Picking a BEServer based on the most recently joined..");
+
+        for(int node = 0; node < this.BEServerList.size(); node++) {
+            if(this.BEServerList.get(node).getBEJoinTime() <= newestTime) {
+                System.out.println("a new beserver was found!");
+                chosenBEServer = this.BEServerList.get(node);
+                newestTime = this.BEServerList.get(node).getBEJoinTime();
+            }
+        }
+
+        return chosenBEServer;
+    }
+
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         try {
             String hashedPassword = null;
@@ -73,7 +90,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //int randomBEServerIndex = rand.nextInt(BEServerList.size());
 
             // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-            BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+            // BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+            BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
 
             /*
                 Randomly pick a BEServer logic.

@@ -11,6 +11,11 @@ import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
+import java.lang.*;
+import java.lang.Exception;
+import java.lang.Override;
+import java.lang.Runnable;
+import java.lang.Thread;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.Calendar;
-
-import java.lang.Exception;
-import java.lang.Override;
-import java.lang.Runnable;
-import java.lang.Thread;
 
 public class BEServer {
 
@@ -46,12 +46,6 @@ public class BEServer {
     public static PerfCounters perfManager = new PerfCounters();
 
     public static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-    public static Long currentTimeInSeconds() {
-        Long currentTimeInMillis = Long.MIN_VALUE;
-        currentTimeInMillis = Calendar.getInstance().getTimeInMillis();
-        return currentTimeInMillis;
-    }
 
     public static class BEServerEntity {
         public String nodeName;
@@ -76,7 +70,7 @@ public class BEServer {
             this.passwordPort = passwordPort;
             this.managementPort = managementPort;
             this.host = host;
-            this.joinTime = currentTimeInSeconds();
+            this.joinTime = System.currentTimeMillis();
         }
 
         public void setEntityFields(String nodeName, String host, int pport, int mport, int numCores, Long joinTime) {

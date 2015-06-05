@@ -53,7 +53,7 @@ public class FEManagementHandler implements FEManagement.Iface {
         }
     }
 
-     public static class FEServerEntity {
+    public static class FEServerEntity {
         public String nodeName;
         public Integer numCores;
         public String host;
@@ -102,13 +102,24 @@ public class FEManagementHandler implements FEManagement.Iface {
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
     private CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList = null;
     private CopyOnWriteArrayList<FEServer.SeedEntity> seedList = new CopyOnWriteArrayList<FEServer.SeedEntity>();
-    public PerfCounters perfCounter = new PerfCounters();
 
-    public FEManagementHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList) {
+    private PerfCounters perfManager = null;
+    private PerfCounters perfCounter = new PerfCounters();
+    private Long uptime;
+
+    public FEManagementHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, CopyOnWriteArrayList<FEServer.FEServerEntity> FEServerList, PerfCounters perfManager, Long uptime) {
         this.BEServerList = BEServerList;
-        //this.seedList = seedList;
         this.FEServerList = FEServerList;
+        this.uptime = uptime;
+        this.perfManager = perfManager;
+    }
 
+    public PerfCounters getPerfCounters() {
+        System.out.println("[FEManagementHandler] FEServer Perf counters was invoked");
+        perfCounter.numSecondsUp = (int)(System.currentTimeMillis() - uptime);
+        perfCounter.numRequestsReceived = perfManager.numRequestsReceived;
+        perfCounter.numRequestsCompleted = perfManager.numRequestsCompleted;
+        return perfCounter;
     }
 
     public List<String> getBEServerList() {
@@ -132,12 +143,6 @@ public class FEManagementHandler implements FEManagement.Iface {
         }
         // should never get here.
         return null;
-    }
-
-    // Return performance metrics.
-    public PerfCounters getPerfCounters() {
-
-        return perfCounter;
     }
 
     // Return group member list.

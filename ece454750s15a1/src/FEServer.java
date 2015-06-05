@@ -1,15 +1,18 @@
 import ece454750s15a1.*;
+import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.*;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportFactory;
 
 import java.lang.*;
 import java.lang.Exception;
@@ -54,6 +57,9 @@ public class FEServer {
     public static Integer mport;
     public static Integer ncores;
     public static String seed_string;
+
+    public static Long uptime;
+    public static PerfCounters perfManager = new PerfCounters();
 
     public static class SeedEntity {
         public String seedHostName;
@@ -220,8 +226,10 @@ public class FEServer {
                 contactFESeed();
             }*/
 
+            uptime = System.currentTimeMillis();
+
             // TODO: Do we actually need a Management port for FEServers?
-            handler_management = new FEManagementHandler(BEServerList, FEServerList);
+            handler_management = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_management = new FEManagement.Processor(handler_management);
             Runnable simple_management = new Runnable() {
                 @Override
@@ -230,7 +238,7 @@ public class FEServer {
                 }
             };
 
-            handler_password = new FEPasswordHandler(BEServerList, handler_management);
+            handler_password = new FEPasswordHandler(BEServerList, perfManager);
             processor_password = new FEPassword.Processor(handler_password);
             Runnable simple_password = new Runnable() {
                 @Override
@@ -243,7 +251,7 @@ public class FEServer {
             new Thread(simple_password).start();
 
             // Thread to sync FEServers with FESeed to get all the BEServer information.
-            handler_sync_with_seed = new FEManagementHandler(BEServerList, FEServerList);
+            handler_sync_with_seed = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_sync_with_seed = new FEManagement.Processor(handler_sync_with_seed);
             Runnable simple_sync_with_seed = new Runnable() {
                 @Override
@@ -259,7 +267,7 @@ public class FEServer {
                 System.out.println("[FEServer] Running the sync_with_seed thread...");
             }
 
-            handler_heartbeat = new FEManagementHandler(BEServerList, FEServerList);
+            handler_heartbeat = new FEManagementHandler(BEServerList, FEServerList, perfManager, uptime);
             processor_heartbeat = new FEManagement.Processor(handler_heartbeat);
             Runnable simple_heartbeat = new Runnable() {
                 @Override
@@ -268,8 +276,8 @@ public class FEServer {
                 }
             };
 
-            executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 500, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(simple_heartbeat, 0, 500, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 100, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(simple_heartbeat, 0, 100, TimeUnit.MILLISECONDS);
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -292,14 +300,30 @@ public class FEServer {
             if (checkIfSeedOrNot(mport)) {
                 // Experiment 1: TThreadedPoolServer
                 TServerTransport serverTransport = new TServerSocket(mport);
-                TServer server = new TThreadPoolServer(
-                        new TThreadPoolServer.Args(serverTransport).processor(processor_management));
+
+                TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport);
+                args.protocolFactory(new TBinaryProtocol.Factory());
+                args.transportFactory(new TTransportFactory());
+                args.processorFactory(new TProcessorFactory(processor_management));
+                args.minWorkerThreads(ncores);
+
+                TThreadPoolServer server = new TThreadPoolServer(args);
                 server.serve();
             }
 
             // This is FEServer
             if (!checkIfSeedOrNot(mport)) {
-                // Some management logic for FEServer
+                // Experiment 1: TThreadedPoolServer
+                TServerTransport serverTransport = new TServerSocket(mport);
+
+                TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport);
+                args.protocolFactory(new TBinaryProtocol.Factory());
+                args.transportFactory(new TTransportFactory());
+                args.processorFactory(new TProcessorFactory(processor_management));
+                args.minWorkerThreads(ncores);
+
+                TThreadPoolServer server = new TThreadPoolServer(args);
+                server.serve();
             }
 
         } catch (Exception e) {
@@ -315,11 +339,15 @@ public class FEServer {
                 // Part 0: Open a server socket to receive requests from the client.
                 System.out.println("[FEServer] Now listening to client requests on pport = " + pport);
 
-                // Experiment 1: TThreadedPoolServer
                 TServerTransport serverTransport = new TServerSocket(pport);
-                TServer server = new TThreadPoolServer(
-                        new TThreadPoolServer.Args(serverTransport).processor(processor_password));
 
+                TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport);
+                args.protocolFactory(new TBinaryProtocol.Factory());
+                args.transportFactory(new TTransportFactory());
+                args.processorFactory(new TProcessorFactory(processor_password));
+                args.minWorkerThreads(ncores);
+
+                TThreadPoolServer server = new TThreadPoolServer(args);
                 server.serve();
             } else { // This is FESeed
                 System.out.println("[FESeed] Password port in FESeed is not programmed.");
