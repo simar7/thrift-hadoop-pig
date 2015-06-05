@@ -184,42 +184,42 @@
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
-            <java classname="FEServer" fork="true" timeout="10000"
+            <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FESeed.log">
                 <arg line="-host localhost -pport 20368 -mport 20369 -ncores 2 -seeds localhost:20369, localhost:20373"/>
             </java>
 
             <echo>[ece454750s15a1] FESeed2</echo>
-            <java classname="FEServer" fork="true" timeout="10000"
+            <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FESeed.log">
                 <arg line="-host localhost -pport 20372 -mport 20373 -ncores 2 -seeds localhost:20369, localhost:20373"/>
             </java>
 
             <echo>[ece454750s15a1] BEServer</echo>
-            <java classname="BEServer" fork="true" timeout="10000"
+            <java classname="BEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_BEServer.log">
                 <arg line="-host localhost -pport 18216 -mport 18217 -ncores 2 -seeds localhost:20369, localhost:20373"/>
             </java>
 
             <echo>[ece454750s15a1] BEServer2</echo>
-            <java classname="BEServer" fork="true" timeout="10000"
+            <java classname="BEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_BEServer.log">
                 <arg line="-host localhost -pport 18218 -mport 18219 -ncores 2 -seeds localhost:20369, localhost:20373"/>
             </java>
 
             <echo>[ece454750s15a1] FEServer</echo>
-            <java classname="FEServer" fork="true" timeout="10000"
+            <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FEServer.log">
                 <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:20369, localhost:20373"/>
             </java>
 
             <echo>[ece454750s15a1] FEServer2</echo>
-            <java classname="FEServer" fork="true" timeout="10000"
+            <java classname="FEServer" fork="true"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FEServer.log">
                 <arg line="-host localhost -pport 11238 -mport 11239 -ncores 2 -seeds localhost:20369, localhost:20373"/>
