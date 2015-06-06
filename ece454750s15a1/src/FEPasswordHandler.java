@@ -19,8 +19,6 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
     private PerfCounters perfCounter = new PerfCounters();
-    private Integer failRetries = 0;
-    public static final Integer GIVE_UP_LIMIT = 10;
 
     public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, PerfCounters perfCounter) {
         this.BEServerList = BEServerList;
@@ -55,8 +53,8 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
         System.out.println("[FEPasswordHandler] Picking a BEServer based on the most recently joined..");
 
-        for(int node = 0; node < this.BEServerList.size(); node++) {
-            if(this.BEServerList.get(node).getBEJoinTime() <= newestTime) {
+        for (int node = 0; node < this.BEServerList.size(); node++) {
+            if (this.BEServerList.get(node).getBEJoinTime() <= newestTime) {
                 System.out.println("a new beserver was found!");
                 chosenBEServer = this.BEServerList.get(node);
                 newestTime = this.BEServerList.get(node).getBEJoinTime();
@@ -72,102 +70,98 @@ public class FEPasswordHandler implements FEPassword.Iface {
         Random rand = new Random();
         int beserverindex = rand.nextInt(BEServerList.size());
         BEServer.BEServerEntity chosenBEServer = this.BEServerList.get(beserverindex);
-
         return chosenBEServer;
     }
 
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
-        try {
-            String hashedPassword = null;
-
-            System.out.println("[FEPasswordHandler] Hashing Password...");
-            System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
-            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
-
-            // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-            //BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
-
-            BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
-
-            TTransport transport_password_fepassword;
-            transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
-            transport_password_fepassword.open();
-            TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
-            BEPassword.Client client = new BEPassword.Client(protocol);
-
-            hashedPassword = client.hashPassword(password, logRounds);
-            transport_password_fepassword.close();
-
-            System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
-            perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
-            failRetries = 0;
-            return hashedPassword;
-
-        } catch (Exception e) {  // Oh noez! The BEServer has crashed!
-            // e.printStackTrace();
+        while (BEServerList.size() != 0) {
             try {
-                if (BEServerList.size() != 0) {
-                    System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
-                    hashPassword(password, logRounds);
-                    failRetries++;
-                } else {
-                    throw new TException();
-                }
-            } catch (Exception x) {
-                System.out.println("[FEPasswordHandler] No BEServers in the list to re-route to!");
-                x.printStackTrace();
-            }
+                String hashedPassword = null;
 
+                System.out.println("[FEPasswordHandler] Hashing Password...");
+                System.out.println("[FEPasswordHandler] Password = " + password + " " + "logRounds = " + logRounds);
+                perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
+
+                // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
+                //BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+
+                BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
+
+                TTransport transport_password_fepassword;
+                transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
+                transport_password_fepassword.open();
+                TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
+                BEPassword.Client client = new BEPassword.Client(protocol);
+
+                hashedPassword = client.hashPassword(password, logRounds);
+                transport_password_fepassword.close();
+
+                System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
+                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
+                return hashedPassword;
+
+            } catch (Exception e) {  // Oh noez! The BEServer has crashed!
+                // e.printStackTrace();
+                System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
+                try {
+                    //Thread.sleep(100);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
+            }
+        }
+        if (BEServerList.size() == 0) {
+            ServiceUnavailableException SUE = new ServiceUnavailableException();
+            throw SUE;
         }
         // should never get here
         return null;
     }
 
     public boolean checkPassword(String password, String hash) throws org.apache.thrift.TException {
-        try {
-            //Random rand = new Random();
-            //int randomBEServerIndex = rand.nextInt(BEServerList.size());
-
-            // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-            // BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
-            BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
-
-            TTransport transport_password_fepassword;
-            transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
-            transport_password_fepassword.open();
-            TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
-            BEPassword.Client client = new BEPassword.Client(protocol);
-
-            System.out.println("[FEPasswordHandler] Checking Password: " + password);
-            perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
-
-            boolean result = client.checkPassword(password, hash);
-            failRetries = 0;
-            if (result) {
-                System.out.println("[FEPasswordHandler] Password Match.");
-                transport_password_fepassword.close();
-                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
-                return true;
-            } else {
-                System.out.println("[FEPasswordHandler] Password Does Not Match.");
-                transport_password_fepassword.close();
-                perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
-                return false;
-            }
-        } catch (Exception e) {
-            //e.printStackTrace();
+        while (BEServerList.size() != 0) {
             try {
-                if (BEServerList.size() != 0) {
-                    System.out.println("[FEPasswordHandler] Re-routing checkPassword request...");
-                    checkPassword(password, hash);
-                    failRetries++;
+                //Random rand = new Random();
+                //int randomBEServerIndex = rand.nextInt(BEServerList.size());
+
+                // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
+                // BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+                BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
+
+                TTransport transport_password_fepassword;
+                transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());
+                transport_password_fepassword.open();
+                TProtocol protocol = new TBinaryProtocol(transport_password_fepassword);
+                BEPassword.Client client = new BEPassword.Client(protocol);
+
+                System.out.println("[FEPasswordHandler] Checking Password: " + password);
+                perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
+
+                boolean result = client.checkPassword(password, hash);
+                if (result) {
+                    System.out.println("[FEPasswordHandler] Password Match.");
+                    transport_password_fepassword.close();
+                    perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
+                    return true;
                 } else {
-                    throw new TException();
+                    System.out.println("[FEPasswordHandler] Password Does Not Match.");
+                    transport_password_fepassword.close();
+                    perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
+                    return false;
                 }
-            } catch (Exception x) {
-                System.out.println("[FEPasswordHandler] No BEServers in the list to re-route to!");
-                x.printStackTrace();
+            } catch (Exception e) {  // Oh noez! The BEServer has crashed!
+                // e.printStackTrace();
+                System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
+                try {
+                    //Thread.sleep(100);
+                } catch (Exception x) {
+                    x.printStackTrace();
+                }
             }
+        }
+        if (BEServerList.size() == 0) {
+            ServiceUnavailableException SUE = new ServiceUnavailableException();
+            throw SUE;
         }
         return false;
     }

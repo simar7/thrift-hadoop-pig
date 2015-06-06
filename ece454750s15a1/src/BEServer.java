@@ -264,7 +264,7 @@ public class BEServer {
 
             // contact other FESeeds to notify about presence.
             // periodic check is needed in case FESeeds go down.
-            executor.scheduleAtFixedRate(contactFESeed, 0, 100, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(contactFESeed, 0, 50, TimeUnit.MILLISECONDS);
 
             //new Thread(contactFESeed).start();
 

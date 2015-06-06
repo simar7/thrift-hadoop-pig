@@ -277,8 +277,8 @@ public class FEServer {
                 }
             };
 
-            executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 100, TimeUnit.MILLISECONDS);
-            executor.scheduleAtFixedRate(simple_heartbeat, 0, 100, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(simple_sync_with_seed, 0, 50, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(simple_heartbeat, 0, 500, TimeUnit.MILLISECONDS);
 
         } catch (Exception x) {
             x.printStackTrace();
