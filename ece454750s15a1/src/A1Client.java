@@ -2,8 +2,10 @@ import ece454750s15a1.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TNonblockingSocket;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TFramedTransport;
 
 import java.lang.Integer;
 import java.lang.System;
@@ -111,32 +113,30 @@ public class A1Client {
             int i = 0;
 
             TTransport transport_password_feserver;
-            System.out.println("Trying to start transport_password on pport = " + pport);
+            System.out.println("Trying to start transport_password on [FEServer] pport = " + pport);
             transport_password_feserver = new TSocket("localhost", pport);
+            TProtocol protocol_password_feserver = new TBinaryProtocol(transport_password_feserver);
+            FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
             transport_password_feserver.open();
 
 
             TTransport transport_management_feserver;
-            System.out.println("Trying to start transport_management on mport = " + mport);
+            System.out.println("Trying to start transport_management on [FEServer] mport = " + mport);
             transport_management_feserver = new TSocket("localhost", mport);
+            TProtocol protocol_management_feserver = new TBinaryProtocol(transport_management_feserver);
+            FEManagement.Client client_management_feserver = new FEManagement.Client(protocol_management_feserver);
             transport_management_feserver.open();
 
+
             TTransport transport_management_beserver;
-            System.out.println("Trying to start transport_management on mport = " + 11237);
-            transport_management_beserver = new TSocket("localhost", 11237);
+            System.out.println("Trying to start transport_management on [BEServer] mport = " + 11237);
+            transport_management_beserver = new TFramedTransport(new TSocket("localhost", 11237));
+            TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
+            BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
             transport_management_beserver.open();
 
 
-            TProtocol protocol_password_feserver = new TBinaryProtocol(transport_password_feserver);
-            TProtocol protocol_management_feserver = new TBinaryProtocol(transport_management_feserver);
-            TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
-
-            FEPassword.Client client_password_feserver = new FEPassword.Client(protocol_password_feserver);
-            FEManagement.Client client_management_feserver = new FEManagement.Client(protocol_management_feserver);
-            BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
-
-
-            while (i != 1000) {
+            while (i != 100) {
                 perform_password(client_password_feserver);
                 RequestsSent = RequestsSent + 3;
                 // TODO: Implement better client logic to only close
