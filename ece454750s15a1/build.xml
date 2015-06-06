@@ -547,6 +547,15 @@
         </java>
     </target>
 
+
+    <target name="BEServer3" description="Run BEServer3" depends="compile">
+        <echo>[ece454750s15a1] BEServer</echo>
+        <java classname="BEServer" fork="true"
+              classpathref="ece454750s15a1.classpath" failonerror="false">
+            <arg line="-host localhost -pport 11238 -mport 11239 -ncores 10 -seeds localhost:29999,localhost:49999"/>
+        </java>
+    </target>
+
     <target name="FEServer" description="Run FEServer" depends="compile">
         <echo>[ece454750s15a1] FEServer</echo>
         <java classname="FEServer" fork="true"
