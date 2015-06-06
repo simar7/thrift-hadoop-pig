@@ -1,15 +1,22 @@
 import ece454750s15a1.*;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.server.TNonblockingServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TServer.Args;
 import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.*;
+import org.apache.thrift.TException;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TServerTransport;
-import org.apache.thrift.TException;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportFactory;
+import org.apache.thrift.TProcessorFactory;
+
 
 import java.lang.*;
 import java.lang.Exception;
@@ -259,6 +266,7 @@ public class BEServer {
             // periodic check is needed in case FESeeds go down.
             executor.scheduleAtFixedRate(contactFESeed, 0, 100, TimeUnit.MILLISECONDS);
 
+            //new Thread(contactFESeed).start();
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -267,9 +275,9 @@ public class BEServer {
 
     public static void simple_management(BEManagement.Processor processor_management) {
         try {
-            TServerTransport serverTransport = new TServerSocket(mport);
-            TServer server = new TSimpleServer(
-                    new Args(serverTransport).processor(processor_management));
+            TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(mport);
+            TServer server = new TNonblockingServer(
+                    new TNonblockingServer.Args(serverTransport).processor(processor_management));
 
             System.out.println("Starting the BEServer management iface at mport = " + mport);
             server.serve();
@@ -281,8 +289,14 @@ public class BEServer {
     public static void simple_password(BEPassword.Processor processor_password) {
         try {
             TServerTransport serverTransport = new TServerSocket(pport);
-            TThreadPoolServer server = new TThreadPoolServer(
-                    new TThreadPoolServer.Args(serverTransport).processor(processor_password));
+
+            TThreadPoolServer.Args args = new TThreadPoolServer.Args(serverTransport);
+            args.protocolFactory(new TBinaryProtocol.Factory());
+            args.transportFactory(new TTransportFactory());
+            args.processorFactory(new TProcessorFactory(processor_password));
+            args.minWorkerThreads(ncores);
+
+            TThreadPoolServer server = new TThreadPoolServer(args);
 
             System.out.println("Starting the BEServer password iface at pport = " + pport);
             server.serve();
