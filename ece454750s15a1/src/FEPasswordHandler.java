@@ -73,6 +73,26 @@ public class FEPasswordHandler implements FEPassword.Iface {
         return chosenBEServer;
     }
 
+    public BEServer.BEServerEntity getCoredRandomBEServer() {
+        System.out.println("[FEPasswordHandler] Picking a random BEServer..");
+        int totalWeight = 0;
+        int randomIndex = 0;
+
+        Random rand = new Random(System.currentTimeMillis());
+
+        for (int i=0; i < BEServerList.size(); i++) {
+            totalWeight += BEServerList.get(i).getBECores();
+        }
+
+        randomIndex = rand.nextInt(totalWeight);
+
+        for (int i=0; i < BEServerList.size(); i++) {
+            if(randomIndex < BEServerList.get(i).getBECores()) return BEServerList.get(i);
+            randomIndex -= BEServerList.get(i).getBECores();
+        }
+
+        return BEServerList.get(randomIndex);
+    }
     public String hashPassword(String password, short logRounds) throws ServiceUnavailableException {
         while (BEServerList.size() != 0) {
             try {
@@ -83,9 +103,9 @@ public class FEPasswordHandler implements FEPassword.Iface {
                 perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
 
                 // BEServer.BEServerEntity chosenBEServer = getTheHighestCoreServer();
-                //BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
-
-                BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
+                // BEServer.BEServerEntity chosenBEServer = getTheLRUBEServer();
+                // BEServer.BEServerEntity chosenBEServer = getRandomBEServer();
+                BEServer.BEServerEntity chosenBEServer = getCoredRandomBEServer();
 
                 TTransport transport_password_fepassword;
                 transport_password_fepassword = new TSocket(chosenBEServer.getBEHostName(), chosenBEServer.getBEPasswordPortNumber());

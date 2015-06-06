@@ -129,8 +129,8 @@ public class A1Client {
 
 
             TTransport transport_management_beserver;
-            System.out.println("Trying to start transport_management on [BEServer] mport = " + 11237);
-            transport_management_beserver = new TFramedTransport(new TSocket("localhost", 11237));
+            System.out.println("Trying to start transport_management on [BEServer] mport = " + 11239);
+            transport_management_beserver = new TFramedTransport(new TSocket("localhost", 11239));
             TProtocol protocol_management_beserver = new TBinaryProtocol(transport_management_beserver);
             BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
             transport_management_beserver.open();
