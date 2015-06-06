@@ -84,7 +84,7 @@ public class BEServer {
 
         @Override
         public boolean equals(final Object otherObj) {
-            if((otherObj == null) || !(otherObj instanceof BEServerEntity)) {
+            if ((otherObj == null) || !(otherObj instanceof BEServerEntity)) {
                 return false;
             }
 
@@ -105,7 +105,9 @@ public class BEServer {
             return ArrRet;
         }
 
-        public String getBENodeName() {return this.nodeName; }
+        public String getBENodeName() {
+            return this.nodeName;
+        }
 
         public String getBEHostName() {
             return this.host;
@@ -123,7 +125,9 @@ public class BEServer {
             return this.passwordPort;
         }
 
-        public Long getBEJoinTime() { return this.joinTime; }
+        public Long getBEJoinTime() {
+            return this.joinTime;
+        }
 
         public void __debug_showInfo() {
             System.out.println("nodeName = " + this.nodeName);
@@ -137,10 +141,10 @@ public class BEServer {
     }
 
     public static class SeedEntity {
-        public String  seedHostName;
+        public String seedHostName;
         public Integer seedPort;
 
-        public  SeedEntity() {
+        public SeedEntity() {
             this.seedHostName = "UNSET";
             this.seedPort = null;
         }
@@ -150,8 +154,8 @@ public class BEServer {
             this.seedPort = port;
         }
 
-        public String [] getEntityFields() {
-            String [] seedArrRet = {this.seedHostName, this.seedPort.toString()};
+        public String[] getEntityFields() {
+            String[] seedArrRet = {this.seedHostName, this.seedPort.toString()};
             return seedArrRet;
         }
 
@@ -168,6 +172,7 @@ public class BEServer {
             System.out.println("seedPort = " + this.seedPort);
         }
     }
+
     public static List<FEServer.SeedEntity> seedEntityList = new ArrayList<FEServer.SeedEntity>();
 
     private static void helpMenu() {
@@ -180,7 +185,7 @@ public class BEServer {
         System.out.println("Seed ports are in A1Management service");
     }
 
-    public static void parseArgs (String [] args) {
+    public static void parseArgs(String[] args) {
         for (int i = 0; i < args.length - 1; i++) {
             //System.out.println("[FEServer] args[" + i + "] = " + args[i]);
             String args_to_check = args[i];
@@ -197,9 +202,9 @@ public class BEServer {
                 String[] seeds_comma_delim = seed_string.split(",");
                 for (String seed_pair : seeds_comma_delim) {
                     String[] seeds_colon_delim = seed_pair.split(":");
-                    for (int j = 0; j < seeds_colon_delim.length - 1; j = j+2) {
+                    for (int j = 0; j < seeds_colon_delim.length - 1; j = j + 2) {
                         String seedHostName = seeds_colon_delim[j];
-                        int seedPortNumber = Integer.parseInt(seeds_colon_delim[j+1]);
+                        int seedPortNumber = Integer.parseInt(seeds_colon_delim[j + 1]);
                         FEServer.SeedEntity seed = new FEServer.SeedEntity();
                         seed.setEntityFields(seedHostName, seedPortNumber);
                         seedEntityList.add(seed);
@@ -210,7 +215,7 @@ public class BEServer {
     }
 
     public static void main(String[] args) {
-        try{
+        try {
 
             uptime = System.currentTimeMillis();
 
@@ -251,7 +256,9 @@ public class BEServer {
             new Thread(simple_password).start();
 
             // contact other FESeeds to notify about presence.
-            new Thread(contactFESeed).start();
+            // periodic check is needed in case FESeeds go down.
+            executor.scheduleAtFixedRate(contactFESeed, 0, 100, TimeUnit.MILLISECONDS);
+
 
         } catch (Exception x) {
             x.printStackTrace();
@@ -286,38 +293,36 @@ public class BEServer {
 
     // This fucntion sends stuff to the servers via the handlers.
     private static void contactFESeed() {
-        while (!hasBEServerConnectedToSeed) {
+        try {
+            TTransport transport;
+            // Get a random seed from the seedEntityList to inform about arrival.
+            FEServer.SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
+
+            transport = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
+            transport.open();
+
+            TProtocol protocol = new TBinaryProtocol(transport);
+            FEManagement.Client client_management = new FEManagement.Client(protocol);
+
+            boolean joinResult = client_management.joinCluster("BEServer", "localhost", pport, mport, ncores);
+            if (joinResult) {
+                System.out.println("[BEServer] Successfully added BEServer to cluster.");
+            } else {
+                System.out.println("[BEServer] Failed to add BEServer to cluster.");
+            }
+
+            //hasBEServerConnectedToSeed = true;
+            transport.close();
+
+        } catch (Exception e) {
+            // Requested FESeed hasn't come up yet...
+            //e.printStackTrace();
+            System.out.println("[BEServer] Waiting for FESeed to connect to...");
             try {
-                TTransport transport;
-                // Get a random seed from the seedEntityList to inform about arrival.
-                FEServer.SeedEntity seedToReach = seedEntityList.get(new Random().nextInt(seedEntityList.size()));
-
-                transport = new TSocket(seedToReach.getSeedHostName(), seedToReach.getSeedPortNumber());
-                transport.open();
-
-                TProtocol protocol = new TBinaryProtocol(transport);
-                FEManagement.Client client_management = new FEManagement.Client(protocol);
-
-                boolean joinResult = client_management.joinCluster("BEServer", "localhost", pport, mport, ncores);
-                if(joinResult) {
-                    System.out.println("[BEServer] Successfully added BEServer to cluster.");
-                } else {
-                    System.out.println("[BEServer] Failed to add BEServer to cluster.");
-                }
-
-                hasBEServerConnectedToSeed = true;
-                transport.close();
-
-            } catch (Exception e) {
-                // Requested FESeed hasn't come up yet...
-                //e.printStackTrace();
-                System.out.println("[BEServer] Waiting for FESeed to connect to...");
-                try {
-                    Thread.sleep(100);
-                } catch (Exception x) {
-                    // should never really happen..
-                    x.printStackTrace();
-                }
+                Thread.sleep(100);
+            } catch (Exception x) {
+                // should never really happen..
+                x.printStackTrace();
             }
         }
     }

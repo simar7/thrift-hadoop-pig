@@ -136,7 +136,7 @@ public class A1Client {
             BEManagement.Client client_management_beserver = new BEManagement.Client(protocol_management_beserver);
 
 
-            while (i != 100) {
+            while (i != 1000) {
                 perform_password(client_password_feserver);
                 RequestsSent = RequestsSent + 3;
                 // TODO: Implement better client logic to only close

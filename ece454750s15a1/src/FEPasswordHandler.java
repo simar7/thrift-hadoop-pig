@@ -9,14 +9,18 @@ import org.apache.thrift.transport.TTransport;
 
 // TODO: Check if this is the right excpetion
 import java.lang.Exception;
+import java.lang.Integer;
 import java.lang.System;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Random;
+
 
 public class FEPasswordHandler implements FEPassword.Iface {
 
     private CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList = null;
     private PerfCounters perfCounter = new PerfCounters();
+    private Integer failRetries = 0;
+    public static final Integer GIVE_UP_LIMIT = 10;
 
     public FEPasswordHandler(CopyOnWriteArrayList<BEServer.BEServerEntity> BEServerList, PerfCounters perfCounter) {
         this.BEServerList = BEServerList;
@@ -96,6 +100,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
 
             System.out.println("[FEPasswordHandler] hashedPassword = " + hashedPassword);
             perfCounter.numRequestsCompleted = perfCounter.numRequestsCompleted += 1;
+            failRetries = 0;
             return hashedPassword;
 
         } catch (Exception e) {  // Oh noez! The BEServer has crashed!
@@ -104,6 +109,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
                 if (BEServerList.size() != 0) {
                     System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
                     hashPassword(password, logRounds);
+                    failRetries++;
                 } else {
                     throw new TException();
                 }
@@ -136,6 +142,7 @@ public class FEPasswordHandler implements FEPassword.Iface {
             perfCounter.numRequestsReceived = perfCounter.numRequestsReceived += 1;
 
             boolean result = client.checkPassword(password, hash);
+            failRetries = 0;
             if (result) {
                 System.out.println("[FEPasswordHandler] Password Match.");
                 transport_password_fepassword.close();
@@ -151,8 +158,9 @@ public class FEPasswordHandler implements FEPassword.Iface {
             //e.printStackTrace();
             try {
                 if (BEServerList.size() != 0) {
-                    System.out.println("[FEPasswordHandler] Re-routing hashPassword request...");
+                    System.out.println("[FEPasswordHandler] Re-routing checkPassword request...");
                     checkPassword(password, hash);
+                    failRetries++;
                 } else {
                     throw new TException();
                 }
