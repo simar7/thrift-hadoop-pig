@@ -39,7 +39,7 @@
     <path id="ece454750s15a1.classpath">
         <path refid="build.classpath"/>
         <pathelement path="${build}"/>
-        <pathelement path="../lib/ece454750s15a1.jar"/>
+        <pathelement path="ece454750s15a1.jar"/>
     </path>
 
     <target name="init">
@@ -61,28 +61,28 @@
     <target name="ece454750s15a1"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
-        <jar jarfile="../lib/ece454750s15a1.jar" basedir="${build}"/>
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
             <java classname="FEServer" fork="true" timeout="10000"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FESeed.log">
-                <arg line="-host localhost -pport 11234 -mport 9999 -ncores 2 -seeds localhost:9999"/>
+                <arg line="-host localhost -pport 20568 -mport 20569 -ncores 2 -seeds localhost:20569"/>
             </java>
 
             <echo>[ece454750s15a1] BEServer</echo>
             <java classname="BEServer" fork="true" timeout="10000"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_BEServer.log">
-                <arg line="-host localhost -pport 51234 -mport 51235 -ncores 2 -seeds localhost:9999"/>
+                <arg line="-host localhost -pport 18216 -mport 18217 -ncores 2 -seeds localhost:20369"/>
             </java>
 
             <echo>[ece454750s15a1] FEServer</echo>
             <java classname="FEServer" fork="true" timeout="10000"
                   classpathref="ece454750s15a1.classpath" failonerror="false"
                   output="${build}/log/ece454750s15a1_FEServer.log">
-                <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+                <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:20369"/>
             </java>
 
             <sequential>
@@ -90,7 +90,7 @@
                 <echo>[ece454750s15a1] A1Client</echo>
                 <java classname="A1Client"
                       classpathref="ece454750s15a1.classpath" failonerror="true">
-                    <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:9999"/>
+                    <arg line="-host localhost -pport 11236 -mport 11237 -ncores 2 -seeds localhost:20369"/>
                 </java>
             </sequential>
 
@@ -180,7 +180,7 @@
     <target name="2seed2feserver2beserver"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
-        <jar jarfile="../lib/ece454750s15a1.jar" basedir="${build}"/>
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
@@ -240,7 +240,7 @@
     <target name="2seed5fe3be2client"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
-        <jar jarfile="../lib/ece454750s15a1.jar" basedir="${build}"/>
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
@@ -335,7 +335,7 @@
     <target name="2seed2fe1be2client"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
-        <jar jarfile="../lib/ece454750s15a1.jar" basedir="${build}"/>
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
@@ -387,7 +387,7 @@
     <target name="2seed2feserver2beserver5clients"
             description="Run the ece454750s15a1. ece454750s15a1Client, BEServer and FEServer are run."
             depends="compile">
-        <jar jarfile="../lib/ece454750s15a1.jar" basedir="${build}"/>
+        <jar jarfile="ece454750s15a1.jar" basedir="${build}"/>
         <parallel>
 
             <echo>[ece454750s15a1] FESeed</echo>
@@ -589,7 +589,7 @@
     <target name="clean">
         <delete dir="${build}"/>
         <delete dir="${gen}"/>
-        <delete file="../lib/ece454750s15a1.jar"/>
+        <delete file="ece454750s15a1.jar"/>
     </target>
 
 </project>
