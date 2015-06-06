@@ -163,6 +163,7 @@ public class FEManagementHandler implements FEManagement.Iface {
             BEServer.BEServerEntity BEServerEntityToAdd = new BEServer.BEServerEntity();
             BEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores, java.util.Calendar.getInstance().getTimeInMillis());
             if(!BEServerList.contains(BEServerEntityToAdd)) {
+                System.out.println("[FEManagement] The [" + nodeName + "." + host + "." + pport + "." + mport + "." + ncores + "]" + " was added to the cluster");
                 BEServerList.add(BEServerEntityToAdd);
             }
         } else if (nodeName.equals("FEServer")) {
@@ -170,13 +171,12 @@ public class FEManagementHandler implements FEManagement.Iface {
             FEServer.FEServerEntity FEServerEntityToAdd = new FEServer.FEServerEntity();
             FEServerEntityToAdd.setEntityFields(nodeName, host, pport, mport, ncores);
             if(!FEServerList.contains(FEServerEntityToAdd)) {
+                System.out.println("[FEManagement] The [" + nodeName + "." + host + "." + pport + "." + mport + "." + ncores + "]" + " was added to the cluster");
                 FEServerList.add(FEServerEntityToAdd);
             }
         }
 
         // clusterList.get(k).__debug_showInfo();
-
-        System.out.println("[FEManagement] The [" + nodeName + "." + host + "." + pport + "." + mport + "." + ncores + "]" + " was added to the cluster");
         //System.out.println("BEServerList.size() = " + BEServerList.size());
         return true;
     }
