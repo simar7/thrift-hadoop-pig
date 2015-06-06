@@ -147,11 +147,14 @@ public class A1Client {
             System.out.println("actual requests sent were = " + RequestsSent);
             getFEPerfCounters(client_management_feserver);
             getBEPerfCounters(client_management_beserver);
+            getFEGroupMembers(client_management_feserver);
+            getBEGroupMembers(client_management_beserver);
 
             transport_management_feserver.close();
             transport_management_beserver.close();
             transport_password_feserver.close();
 
+            
 
         }catch (Exception e) {
             e.printStackTrace();
@@ -183,6 +186,15 @@ public class A1Client {
         System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
     }
 
+    private static void getFEGroupMembers(FEManagement.Client client_management_feserver) throws TException {
+        List<String> names = client_management_feserver.getGroupMembers();
+
+        System.out.println("[A1Client] ---- FE Group Members ----");
+        for(String name : names) {
+            System.out.println("[A1Client] member: " + name);
+        }
+    }
+
     private static void getBEPerfCounters(BEManagement.Client client_management_beserver) throws TException {
         PerfCounters perfCounters = new PerfCounters();
         perfCounters = client_management_beserver.getPerfCounters();
@@ -191,5 +203,14 @@ public class A1Client {
         System.out.println("[A1Client] Server uptime: " + perfCounters.numSecondsUp);
         System.out.println("[A1Client] Requests Rec : " + perfCounters.numRequestsReceived);
         System.out.println("[A1Client] Requesrs Com : " + perfCounters.numRequestsCompleted);
+    }
+
+    private static void getBEGroupMembers(BEManagement.Client client_management_beserver) throws TException {
+        List<String> names = client_management_beserver.getGroupMembers();
+
+        System.out.println("[A1Client] ---- BE Group Members ----");
+        for(String name : names) {
+            System.out.println("[A1Client] member: " + name);
+        }
     }
 }
