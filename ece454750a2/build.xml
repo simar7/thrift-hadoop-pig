@@ -32,7 +32,7 @@
       <echo>A2 test</echo>
       <java classname="ece454750s15a2.TriangleCount"
             classpathref="a2.classpath" failonerror="true">
-        <arg line="-ncores 1 -if tests/inputs/graph1K_B.txt -of output.txt"/>
+        <arg line="-ncores 1 -if samplegraph.txt -of output.txt"/>
       </java>
     </sequential>
   </target>
