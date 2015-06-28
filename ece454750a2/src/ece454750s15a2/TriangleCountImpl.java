@@ -22,6 +22,8 @@ import java.lang.RuntimeException;
 import java.lang.System;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -131,7 +133,7 @@ public class TriangleCountImpl {
         }
 
         public boolean hasEdge(int i, int j) {
-            return this.adjList.get(i).contains(j);
+            return (this.adjList.get(i).contains(j) || this.adjList.get(j).contains(i));
         }
 
         public int getNumVertices() {
@@ -579,6 +581,7 @@ public class TriangleCountImpl {
         int triangleCounter = 0;
 
         System.out.println("numVertices = " + adjacencyList.getNumVertices());
+        System.out.println("numEdges    = " + adjacencyList.getNumEdges());
 
         ArrayList<ArrayList<Integer>> vertexHistory = new ArrayList<ArrayList<Integer>>();
 
@@ -586,30 +589,103 @@ public class TriangleCountImpl {
             vertexHistory.add(new ArrayList<Integer>());
         }
 
+        // Create three lists of Integer values
+        List<Integer> i_list = new ArrayList<Integer>();
+        for (int i = 0; i < adjacencyList.getNumVertices(); i++) {
+            i_list.add(i);
+        }
+
+        System.out.println("i_list = " + i_list.toString());
+
+        // The other two lists would be shifted modifications
+        List<Integer> j_list = new ArrayList<Integer>(i_list);
+        Collections.rotate(j_list, -1);
+        System.out.println("j_list = " + j_list.toString());
+
+
+        List<Integer> v_list = new ArrayList<Integer>(i_list);
+        Collections.rotate(v_list, -2);
+        System.out.println("v_list = " + v_list.toString());
+
+        int i_list_iter = 0;
+        int j_list_iter = 0;
+        int v_list_iter = 0;
+
+        for(int i = 0; i < adjacencyList.getNumVertices(); i++) {
+            System.out.println("vertex[" + i + "]" + adjacencyList.get(i).toString());
+        }
+
+        while (i_list_iter < adjacencyList.getNumVertices()) {
+            while (j_list_iter < adjacencyList.getNumVertices()) {
+                if (i_list.get(i_list_iter) != j_list.get(j_list_iter)) {
+                    if (adjacencyList.hasEdge(i_list.get(i_list_iter), j_list.get(j_list_iter))) {
+                        vertexHistory.get(j_list_iter).add(i_list.get(i_list_iter));
+                        vertexHistory.get(i_list_iter).add(j_list.get(j_list_iter));
+                        while (v_list_iter < adjacencyList.getNumVertices()) {
+                            if (v_list.get(v_list_iter) != i_list.get(i_list_iter) && v_list.get(v_list_iter) != j_list.get(j_list_iter)) {
+                                if ((vertexHistory.get(i_list_iter).contains(v_list_iter) && vertexHistory.get(i_list_iter).contains(j_list_iter)) && (vertexHistory.get(j_list_iter).contains(v_list_iter) && vertexHistory.get(j_list_iter).contains(i_list_iter)) && (vertexHistory.get(v_list_iter).contains(i_list_iter) && vertexHistory.get(v_list_iter).contains(j_list_iter))) {
+                                    v_list_iter += 1;
+                                    continue;
+                                }
+                                if (adjacencyList.hasEdge(i_list.get(i_list_iter), v_list.get(v_list_iter))) {
+                                    vertexHistory.get(v_list_iter).add(i_list.get(i_list_iter));
+                                    vertexHistory.get(i_list_iter).add(v_list.get(v_list_iter));
+                                    if (adjacencyList.hasEdge(v_list.get(v_list_iter), j_list.get(j_list_iter))) {
+                                        vertexHistory.get(v_list_iter).add(j_list.get(j_list_iter));
+                                        vertexHistory.get(j_list_iter).add(v_list.get(v_list_iter));
+
+                                        // triangle exists
+                                        triangleCounter += 1;
+                                        ret.add(new Triangle(i_list_iter, j_list_iter, v_list_iter));
+                                    }
+                                    else {
+                                        System.out.println("no edge from = " + v_list.get(v_list_iter) + " to " + j_list.get(j_list_iter));
+                                    }
+                                }
+                                else {
+                                    System.out.println("no edge from = " + i_list.get(i_list_iter) + " to " + v_list.get(v_list_iter));
+                                }
+                            }
+                            v_list_iter += 1;
+                        }
+                    } else {
+                        System.out.println("no edge from = " + i_list.get(i_list_iter) + " to " + j_list.get(j_list_iter));
+                    }
+                }
+                j_list_iter += 1;
+            }
+            i_list_iter += 1;
+        }
+
+
+        System.out.println("i_list_iter = " + i_list_iter + " j_list_iter = " + j_list_iter + " v_list_iter = " + v_list_iter);
+
+    /*
         for (int i = 0; i < adjacencyList.getNumVertices(); i++) {
             for (int j = 0; j < adjacencyList.getNumVertices(); j++) {
                 if (i != j) {
                     if (adjacencyList.hasEdge(i, j)) {
                         for (int v = 0; v < adjacencyList.getNumVertices(); v++) {
-                            if( (vertexHistory.get(i).contains(v) && vertexHistory.get(i).contains(j)) && (vertexHistory.get(j).contains(v) && vertexHistory.get(j).contains(i)) && (vertexHistory.get(v).contains(i) && vertexHistory.get(v).contains(j)) )
-                                continue;
-
-                            if (adjacencyList.hasEdge(i, v) && adjacencyList.hasEdge(v, j)) {
-                                vertexHistory.get(v).add(i);
-                                vertexHistory.get(v).add(j);
-                                vertexHistory.get(j).add(v);
-                                vertexHistory.get(j).add(i);
-                                vertexHistory.get(i).add(v);
-                                vertexHistory.get(i).add(j);
-                                triangleCounter += 1;
-                                ret.add(new Triangle(i, j, v));
+                            if (v != i && v != j) {
+                                if ((vertexHistory.get(i).contains(v) && vertexHistory.get(i).contains(j)) && (vertexHistory.get(j).contains(v) && vertexHistory.get(j).contains(i)) && (vertexHistory.get(v).contains(i) && vertexHistory.get(v).contains(j))) {
+                                    continue;
+                                } else if (adjacencyList.hasEdge(i, v) && adjacencyList.hasEdge(v, j)) {
+                                    vertexHistory.get(v).add(i);
+                                    vertexHistory.get(v).add(j);
+                                    vertexHistory.get(j).add(v);
+                                    vertexHistory.get(j).add(i);
+                                    vertexHistory.get(i).add(v);
+                                    vertexHistory.get(i).add(j);
+                                    triangleCounter += 1;
+                                    ret.add(new Triangle(i, j, v));
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
+    */
 
         for (int i = 0; i < vertexHistory.size(); i++) {
             System.out.println("connections from [" + i + "]" + vertexHistory.get(i));
@@ -672,8 +748,7 @@ public class TriangleCountImpl {
             if (parts.length > 1) {
                 parts = parts[1].split(" +");
                 for (String edge : parts) {
-                    if(parts.length >= 2)
-                        adjList.addEdge(current_vertex, Integer.parseInt(edge));
+                    adjList.addEdge(current_vertex, Integer.parseInt(edge));
                 }
             }
         }
