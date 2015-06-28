@@ -22,6 +22,7 @@ import java.lang.RuntimeException;
 import java.lang.System;
 import java.util.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -105,6 +106,44 @@ public class TriangleCountImpl {
                 s.append(NEWLINE);
             }
             return s.toString();
+        }
+
+    }
+
+    public class AdjListGraph {
+        private int V;
+        private int E;
+        private ArrayList<HashSet<Integer>> adjList;
+
+        public AdjListGraph(int V, int E) {
+            if (V < 0) throw new RuntimeException("Number of vertices cannot be negative.");
+            this.V = V;
+            this.E = E;
+            this.adjList = new ArrayList<HashSet<Integer>>();
+            for(int i = 0; i < V; ++i) {
+                this.adjList.add(new HashSet<Integer>());
+            }
+        }
+
+        public void addEdge(int i, int j) {
+            this.adjList.get(i).add(j);
+            this.adjList.get(j).add(i);
+        }
+
+        public boolean hasEdge(int i, int j) {
+            return this.adjList.get(i).contains(j);
+        }
+
+        public int getNumVertices() {
+            return this.V;
+        }
+
+        public int getNumEdges() {
+            return this.E;
+        }
+
+        public HashSet<Integer> get(int i) {
+            return this.adjList.get(i);
         }
 
     }
@@ -499,32 +538,8 @@ public class TriangleCountImpl {
         return false;
     }
 
-    public List<Triangle> enumerateTrianglesNaive() throws IOException {
-        // this code is single-threaded and ignores numCores
 
-        ArrayList<ArrayList<Integer>> adjacencyList = getAdjacencyList(input);
-        ArrayList<Triangle> ret = new ArrayList<Triangle>();
-
-        // naive triangle counting algorithm. 0xBOOOHISS
-        int numVertices = adjacencyList.size();
-        for (int i = 0; i < numVertices; i++) {
-            ArrayList<Integer> n1 = adjacencyList.get(i);
-            for (int j : n1) {
-                ArrayList<Integer> n2 = adjacencyList.get(j);
-                for (int k : n2) {
-                    ArrayList<Integer> n3 = adjacencyList.get(k);
-                    for (int l : n3) {
-                        if (i < j && j < k && l == i) {
-                            ret.add(new Triangle(i, j, k));
-                        }
-                    }
-                }
-            }
-        }
-        return ret;
-    }
-
-    public List<Triangle> enumerateTriangles() throws IOException {
+    public List<Triangle> enumerateTrianglesMM() throws IOException {
         // TODO: Utilize ncores and parallelize
 
         AdjMatrixGraph adjacencyMatrix = getAdjacencyMatrix(input);
@@ -532,15 +547,15 @@ public class TriangleCountImpl {
 
         // Logic 1: Computing trace and calculating triangles.
         /* Distinct Triangles: trace(A^3) / 6
-        Strassen strassenator = new Strassen();
-        ArrayList<ArrayList<Integer>> stage1 = adjacencyMatrix.adjMatrix;
-        ArrayList<ArrayList<Integer>> stage2 = strassenator.strassen(stage1, stage1);
-        ArrayList<ArrayList<Integer>> stage3 = strassenator.strassen(stage2, stage1);
+            Strassen strassenator = new Strassen();
+            ArrayList<ArrayList<Integer>> stage1 = adjacencyMatrix.adjMatrix;
+            ArrayList<ArrayList<Integer>> stage2 = strassenator.strassen(stage1, stage1);
+            ArrayList<ArrayList<Integer>> stage3 = strassenator.strassen(stage2, stage1);
 
-        int adjMatrixTrace = this.getTrace(stage3);
-        int totalTriangles = adjMatrixTrace / 6;
-        System.out.println("Total number of Triangles = " + totalTriangles);
-        //System.out.println(adjacencyMatrix);
+            int adjMatrixTrace = this.getTrace(stage3);
+            int totalTriangles = adjMatrixTrace / 6;
+            System.out.println("Total number of Triangles = " + totalTriangles);
+            //System.out.println(adjacencyMatrix);
         */
 
         Strassen strassenator = new Strassen();
@@ -558,6 +573,52 @@ public class TriangleCountImpl {
         return ret;
     }
 
+    public List<Triangle> enumerateTriangles() throws IOException {
+        AdjListGraph adjacencyList = getAdjacencyList(input);
+        ArrayList<Triangle> ret = new ArrayList<Triangle>();
+        int triangleCounter = 0;
+
+        System.out.println("numVertices = " + adjacencyList.getNumVertices());
+
+        ArrayList<ArrayList<Integer>> vertexHistory = new ArrayList<ArrayList<Integer>>();
+
+        for (int i = 0; i < adjacencyList.getNumVertices(); i++) {
+            vertexHistory.add(new ArrayList<Integer>());
+        }
+
+        for (int i = 0; i < adjacencyList.getNumVertices(); i++) {
+            for (int j = 0; j < adjacencyList.getNumVertices(); j++) {
+                if (i != j) {
+                    if (adjacencyList.hasEdge(i, j)) {
+                        for (int v = 0; v < adjacencyList.getNumVertices(); v++) {
+                            if( (vertexHistory.get(i).contains(v) && vertexHistory.get(i).contains(j)) && (vertexHistory.get(j).contains(v) && vertexHistory.get(j).contains(i)) && (vertexHistory.get(v).contains(i) && vertexHistory.get(v).contains(j)) )
+                                continue;
+
+                            if (adjacencyList.hasEdge(i, v) && adjacencyList.hasEdge(v, j)) {
+                                vertexHistory.get(v).add(i);
+                                vertexHistory.get(v).add(j);
+                                vertexHistory.get(j).add(v);
+                                vertexHistory.get(j).add(i);
+                                vertexHistory.get(i).add(v);
+                                vertexHistory.get(i).add(j);
+                                triangleCounter += 1;
+                                ret.add(new Triangle(i, j, v));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        for (int i = 0; i < vertexHistory.size(); i++) {
+            System.out.println("connections from [" + i + "]" + vertexHistory.get(i));
+        }
+
+        System.out.println("Total triangles = " + triangleCounter);
+
+        return ret;
+    }
 
     public AdjMatrixGraph getAdjacencyMatrix(byte[] data) throws IOException {
         System.out.println("Algorithm: Adjacency Matrix Scheme");
@@ -590,7 +651,7 @@ public class TriangleCountImpl {
         return adjMatrix;
     }
 
-    public ArrayList<ArrayList<Integer>> getAdjacencyList(byte[] data) throws IOException {
+    public AdjListGraph getAdjacencyList(byte[] data) throws IOException {
         InputStream istream = new ByteArrayInputStream(data);
         BufferedReader br = new BufferedReader(new InputStreamReader(istream));
         String strLine = br.readLine();
@@ -603,21 +664,20 @@ public class TriangleCountImpl {
         int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
         System.out.println("Found graph with " + numVertices + " vertices and " + numEdges + " edges");
 
-        ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(numVertices);
-        for (int i = 0; i < numVertices; i++) {
-            adjacencyList.add(new ArrayList<Integer>());
-        }
+        AdjListGraph adjList = new AdjListGraph(numVertices, numEdges);
+
         while ((strLine = br.readLine()) != null && !strLine.equals("")) {
             parts = strLine.split(": ");
-            int vertex = Integer.parseInt(parts[0]);
+            int current_vertex = Integer.parseInt(parts[0]);
             if (parts.length > 1) {
                 parts = parts[1].split(" +");
-                for (String part : parts) {
-                    adjacencyList.get(vertex).add(Integer.parseInt(part));
+                for (String edge : parts) {
+                    if(parts.length >= 2)
+                        adjList.addEdge(current_vertex, Integer.parseInt(edge));
                 }
             }
         }
         br.close();
-        return adjacencyList;
+        return adjList;
     }
 }
