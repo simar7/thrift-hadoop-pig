@@ -592,59 +592,16 @@ public class TriangleCountImpl {
         System.out.println("numVertices = " + adjacencyList.getNumVertices());
         System.out.println("numEdges    = " + adjacencyList.getTotalNumEdges());
 
-        for (int i = 0; i < adjacencyList.getNumVertices(); i += 2) {
-            for (int j = 0; j < adjacencyList.getNumVertices(); j += 2) {
+        for (int i = 0; i < adjacencyList.getNumVertices(); i += 1) {
+            for (int j = 0; j < adjacencyList.getNumVertices(); j += 1) {
                 if (i != j) {
                     if (adjacencyList.hasEdge(i, j)) {
-                        for (int v = 0; v < adjacencyList.getNumVertices(); v += 4) {
+                        for (int v = 0; v < adjacencyList.getNumVertices(); v += 1) {
                             if (v != j && v != i) {
                                 if (adjacencyList.hasEdge(i, v) && adjacencyList.hasEdge(v, j)) {
                                     adjacencyList.removeEdge(i, j);
                                     triangleCounter += 1;
                                     ret.add(new Triangle(i, j, v));
-                                }
-                                if (adjacencyList.hasEdge(i, v + 1) && adjacencyList.hasEdge(v + 1, j)) {
-                                    adjacencyList.removeEdge(i, j);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i, j, v + 1));
-                                }
-                                if (adjacencyList.hasEdge(i, v + 2) && adjacencyList.hasEdge(v + 2, j)) {
-                                    adjacencyList.removeEdge(i, j);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i, j, v + 2));
-                                }
-                                if (adjacencyList.hasEdge(i, v + 3) && adjacencyList.hasEdge(v + 3, j)) {
-                                    adjacencyList.removeEdge(i, j);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i, j, v + 3));
-                                }
-                            }
-                        }
-                    }
-                }
-                if (i + 1 != j + 1) {
-                    if (adjacencyList.hasEdge(i + 1, j + 1)) {
-                        for (int v = 0; v < adjacencyList.getNumVertices(); v += 4) {
-                            if (v != j + 1 && v != i + 1) {
-                                if (adjacencyList.hasEdge(i + 1, v) && adjacencyList.hasEdge(v, j + 1)) {
-                                    adjacencyList.removeEdge(i + 1, j + 1);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i + 1, j + 1, v));
-                                }
-                                if (adjacencyList.hasEdge(i + 1, v + 1) && adjacencyList.hasEdge(v + 1, j + 1)) {
-                                    adjacencyList.removeEdge(i + 1, j + 1);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i + 1, j + 1, v + 1));
-                                }
-                                if (adjacencyList.hasEdge(i + 1, v + 2) && adjacencyList.hasEdge(v + 2, j + 1)) {
-                                    adjacencyList.removeEdge(i + 1, j + 1);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i + 1, j + 1, v + 2));
-                                }
-                                if (adjacencyList.hasEdge(i + 1, v + 3) && adjacencyList.hasEdge(v + 3, j + 1)) {
-                                    adjacencyList.removeEdge(i + 1, j + 1);
-                                    triangleCounter += 1;
-                                    ret.add(new Triangle(i + 1, j + 1, v + 3));
                                 }
                             }
                         }
@@ -652,6 +609,7 @@ public class TriangleCountImpl {
                 }
             }
         }
+
 
 
 
