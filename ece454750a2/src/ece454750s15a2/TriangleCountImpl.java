@@ -21,6 +21,7 @@ import java.lang.Integer;
 import java.lang.Iterable;
 import java.lang.RuntimeException;
 import java.lang.System;
+import java.lang.Thread;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,11 +33,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
-    private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
+    //private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
+    private final ConcurrentHashMap<Integer, Triangle> triangleFoundConcurrentHashMap;
     private final int numThreads;
     private int iteratorChunkSize;
 
@@ -45,9 +48,9 @@ public class TriangleCountImpl {
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
         this.numCores = numCores;
-        this.triangleCopyOnWriteArraySetFoundList = new CopyOnWriteArraySet<Triangle>();
-        this.numThreads = Runtime.getRuntime().availableProcessors();   // 1 thread per core.
-        this.iteratorChunkSize = 1000;      // TODO: Get the right number
+        this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<Integer, Triangle>();
+        this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
+        this.iteratorChunkSize = 0;      // Just a placeholder, real value set in enumerateTriangles()
         this.triangleArrayList = new ArrayList<Triangle>();
     }
 
@@ -64,6 +67,12 @@ public class TriangleCountImpl {
             for (int i = 0; i < V; ++i) {
                 this.adjList.add(new HashSet<Integer>());
             }
+        }
+
+        public AdjListGraph(AdjListGraph adjListOld) {
+            this.V = adjListOld.getNumVertices();
+            this.E = adjListOld.getTotalNumEdges();
+            this.adjList = new ArrayList<HashSet<Integer>>(adjListOld.adjList);
         }
 
         public void addEdge(int i, int j) {
@@ -110,12 +119,12 @@ public class TriangleCountImpl {
         return ret;
     }
 
-    public void updateTriangleFoundList (Triangle t) {
+    public void updateTriangleFoundList (int Vertex, Triangle t) {
         if(numCores == 1)
-            triangleCopyOnWriteArraySetFoundList.add(t);
+            this.triangleArrayList.add(t);
         else {
-            synchronized (triangleCopyOnWriteArraySetFoundList) {
-                triangleCopyOnWriteArraySetFoundList.add(t);
+            synchronized (triangleFoundConcurrentHashMap) {
+                triangleFoundConcurrentHashMap.put(Vertex, t);
             }
         }
     }
@@ -128,10 +137,12 @@ public class TriangleCountImpl {
         return this.iteratorChunkSize;
     }
 
-    public void triangleWorker(AdjListGraph adjacencyList, int startRange, int endRange) {
+    public void triangleWorker(AdjListGraph adjacencyListOrig, int startRange, int endRange) {
         int triangleCounter = 0;
         int numEdges = 0;
         int numVertices = 0;
+
+        AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
 
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
@@ -146,6 +157,8 @@ public class TriangleCountImpl {
         Iterator<Integer> iteratorA;
         Iterator<Integer> iteratorB;
         HashSet<Integer> vertex;
+
+        System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
         for (int vertex_index = startRange; vertex_index < endRange; vertex_index += 1) {
             vertex = adjacencyList.get(vertex_index);
@@ -162,9 +175,9 @@ public class TriangleCountImpl {
                         if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
                             triangleCounter += 1;
                             if (numCores == 1)
-                                this.triangleArrayList.add(new Triangle(vertex_index, vertex_A, vertex_B));
+                                this.updateTriangleFoundList(vertex_index, new Triangle(vertex_index, vertex_A, vertex_B));
                             else
-                                this.updateTriangleFoundList(new Triangle(vertex_index, vertex_A, vertex_B));
+                                this.updateTriangleFoundList(vertex_index, new Triangle(vertex_index, vertex_A, vertex_B));
                         }
                     }
                 }
@@ -188,16 +201,17 @@ public class TriangleCountImpl {
 
             this.setIteratorChunkSize(adjacencyList.getNumVertices() / this.numThreads);
 
+            int offset = 0;
             for (int i = 0; i < this.numThreads; ++i) {
-                final int startRange = i * this.getIteratorChunkSize();
-                final int endRange = i > this.numThreads - 1 ? (i + 1) * this.getIteratorChunkSize() : adjacencyList.getNumVertices();
-
+                final int startRange = offset;
+                final int endRange = offset + this.getIteratorChunkSize();
                 pool.execute(new Runnable() {
                     @Override
                     public void run() {
                         triangleWorker(adjacencyList, startRange, endRange);
                     }
                 });
+                offset += this.getIteratorChunkSize();
             }
 
             //triangleWorker(adjacencyList, adjacencyList.getNumVertices() - this.getIteratorChunkSize(), adjacencyList.getNumVertices());
@@ -222,8 +236,8 @@ public class TriangleCountImpl {
             return this.triangleArrayList;
         }
         else {
-            System.out.println("Total triangles = " + this.triangleCopyOnWriteArraySetFoundList.size());
-            return new ArrayList<Triangle>(this.triangleCopyOnWriteArraySetFoundList);
+            System.out.println("Total triangles = " + this.triangleFoundConcurrentHashMap.size());
+            return new ArrayList<Triangle>(this.triangleFoundConcurrentHashMap.values());
         }
     }
 
