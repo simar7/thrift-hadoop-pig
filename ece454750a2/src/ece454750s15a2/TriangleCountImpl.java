@@ -205,7 +205,7 @@ public class TriangleCountImpl {
 
             int offset = 0;
             for (int i = 0; i < this.numThreads; ++i) {
-                final int startRange = i > 0 ? offset - 1 : 0;
+                final int startRange = i > 0 ? offset + 1 : 0;
                 final int endRange = offset + this.getIteratorChunkSize();
                 pool.execute(new Runnable() {
                     @Override
