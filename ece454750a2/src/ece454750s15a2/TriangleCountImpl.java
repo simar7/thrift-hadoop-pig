@@ -124,7 +124,9 @@ public class TriangleCountImpl {
             this.triangleArrayList.add(t);
         else {
             synchronized (triangleFoundConcurrentHashMap) {
-                triangleFoundConcurrentHashMap.put(Vertex, t);
+                // FIXME: Need better logic for keys in the HashMap.
+                Random rand = new Random();
+                triangleFoundConcurrentHashMap.put(rand.nextInt(), t);
             }
         }
     }
@@ -203,7 +205,7 @@ public class TriangleCountImpl {
 
             int offset = 0;
             for (int i = 0; i < this.numThreads; ++i) {
-                final int startRange = offset;
+                final int startRange = i > 0 ? offset - 1 : 0;
                 final int endRange = offset + this.getIteratorChunkSize();
                 pool.execute(new Runnable() {
                     @Override
