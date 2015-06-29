@@ -16,6 +16,7 @@ package ece454750s15a2;
 import java.io.*;
 import java.io.IOError;
 import java.io.IOException;
+import java.lang.*;
 import java.lang.Integer;
 import java.lang.Iterable;
 import java.lang.RuntimeException;
@@ -28,16 +29,25 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
+    private final CopyOnWriteArraySet<Triangle> triangleFoundList;
+    private final int numThreads;
+    private int iteratorChunkSize;
 
     private ArrayList<Triangle> ret;
 
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
         this.numCores = numCores;
+        this.triangleFoundList = new CopyOnWriteArraySet<Triangle>();
+        this.numThreads = Runtime.getRuntime().availableProcessors();   // 1 thread per core.
+        this.iteratorChunkSize = 1000;      // TODO: Get the right number
     }
 
     public class AdjListGraph {
@@ -99,24 +109,25 @@ public class TriangleCountImpl {
         return ret;
     }
 
-    public boolean checkForTriangle(int[][] A, int[][] A_sq) {
-        int n = A.length;
-        for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                if (A[i][j] == 1 && A_sq[i][j] >= 1) {
-                    return true;
-                }
+    public void updateTriangleFoundList (Triangle t) {
+        if(numCores == 1)
+            triangleFoundList.add(t);
+        else {
+            synchronized (triangleFoundList) {
+                triangleFoundList.add(t);
             }
         }
-        // no triangles were found
-        return false;
     }
 
-    public List<Triangle> enumerateTriangles() throws IOException {
-        AdjListGraph adjacencyList = getAdjacencyList(input);
-        ret = new ArrayList<Triangle>();
-        CopyOnWriteArraySet<Triangle> retSet = new CopyOnWriteArraySet<Triangle>();
+    public void setIteratorChunkSize(int size) {
+        this.iteratorChunkSize = size;
+    }
 
+    public int getIteratorChunkSize() {
+        return this.iteratorChunkSize;
+    }
+
+    public void triangleWorker(AdjListGraph adjacencyList, int startRange, int endRange) {
         int triangleCounter = 0;
         int numEdges = 0;
         int numVertices = 0;
@@ -135,11 +146,7 @@ public class TriangleCountImpl {
         Iterator<Integer> iteratorB;
         HashSet<Integer> vertex;
 
-        // start the clock
-        long startTime = System.currentTimeMillis();
-
-
-        for (int vertex_index = 0; vertex_index < numVertices; vertex_index += 1) {
+        for (int vertex_index = startRange; vertex_index < endRange; vertex_index += 1) {
             vertex = adjacencyList.get(vertex_index);
             numEdges = vertex.size();
             iteratorA = vertex.iterator();
@@ -153,8 +160,10 @@ public class TriangleCountImpl {
                         numEdges_B = adjacencyList.getRelativeEdges(vertex_B);
                         if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
                             triangleCounter += 1;
-                            //ret.add(new Triangle(vertex_index, vertex_A, vertex_B));
-                            retSet.add(new Triangle(vertex_index, vertex_A, vertex_B));
+                            if (numCores == 1)
+                                ret.add(new Triangle(vertex_index, vertex_A, vertex_B));
+                            else
+                                this.updateTriangleFoundList(new Triangle(vertex_index, vertex_A, vertex_B));
                         }
                     }
                 }
@@ -163,6 +172,38 @@ public class TriangleCountImpl {
             vertex.clear();
         }
 
+    }
+
+    public List<Triangle> enumerateTriangles() throws IOException {
+        final AdjListGraph adjacencyList = getAdjacencyList(input);
+
+        // start the clock
+        long startTime = System.currentTimeMillis();
+
+        ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
+
+        this.setIteratorChunkSize(adjacencyList.getNumVertices() / this.numThreads);
+
+        for (int i = 0; i < this.numThreads; ++i) {
+            final int startRange = i * this.getIteratorChunkSize();
+            final int endRange = i > this.numThreads - 1 ? (i+1)*this.getIteratorChunkSize() : adjacencyList.getNumVertices();
+
+            pool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    triangleWorker(adjacencyList, startRange, endRange);
+                }
+            });
+        }
+
+        triangleWorker(adjacencyList, adjacencyList.getNumVertices() - this.getIteratorChunkSize(), adjacencyList.getNumVertices());
+
+        pool.shutdown();
+        try {
+            pool.awaitTermination(1, TimeUnit.DAYS);
+        } catch (java.lang.InterruptedException ignore) {
+
+        }
 
         // stop the clock
         long endTime = System.currentTimeMillis();
@@ -170,7 +211,12 @@ public class TriangleCountImpl {
         long diffTime = endTime - startTime;
         System.out.println("Actual computation took: " + diffTime + "ms");
 
-        System.out.println("Total triangles = " + triangleCounter);
+        System.out.println("Total triangles = " + this.triangleFoundList.size());
+
+        if(numCores == 1)
+            return ret;
+        else
+            ret = new ArrayList<Triangle>(this.triangleFoundList);
 
         return ret;
 
