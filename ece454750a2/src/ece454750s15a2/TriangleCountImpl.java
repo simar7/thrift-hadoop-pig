@@ -27,10 +27,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
+
+    private ArrayList<Triangle> ret;
 
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
@@ -96,7 +99,6 @@ public class TriangleCountImpl {
         return ret;
     }
 
-
     public boolean checkForTriangle(int[][] A, int[][] A_sq) {
         int n = A.length;
         for (int i = 0; i < n; ++i) {
@@ -112,7 +114,9 @@ public class TriangleCountImpl {
 
     public List<Triangle> enumerateTriangles() throws IOException {
         AdjListGraph adjacencyList = getAdjacencyList(input);
-        ArrayList<Triangle> ret = new ArrayList<Triangle>();
+        ret = new ArrayList<Triangle>();
+        CopyOnWriteArraySet<Triangle> retSet = new CopyOnWriteArraySet<Triangle>();
+
         int triangleCounter = 0;
         int numEdges = 0;
         int numVertices = 0;
@@ -131,6 +135,10 @@ public class TriangleCountImpl {
         Iterator<Integer> iteratorB;
         HashSet<Integer> vertex;
 
+        // start the clock
+        long startTime = System.currentTimeMillis();
+
+
         for (int vertex_index = 0; vertex_index < numVertices; vertex_index += 1) {
             vertex = adjacencyList.get(vertex_index);
             numEdges = vertex.size();
@@ -145,16 +153,22 @@ public class TriangleCountImpl {
                         numEdges_B = adjacencyList.getRelativeEdges(vertex_B);
                         if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
                             triangleCounter += 1;
-                            //adjacencyList.removeEdge(vertex_A, vertex_B);
-                            ret.add(new Triangle(vertex_index, vertex_A, vertex_B));
+                            //ret.add(new Triangle(vertex_index, vertex_A, vertex_B));
+                            retSet.add(new Triangle(vertex_index, vertex_A, vertex_B));
                         }
                     }
                 }
-                //adjacencyList.get(vertex_A).remove(vertex_index);
                 iteratorA.remove();
             }
             vertex.clear();
         }
+
+
+        // stop the clock
+        long endTime = System.currentTimeMillis();
+
+        long diffTime = endTime - startTime;
+        System.out.println("Actual computation took: " + diffTime + "ms");
 
         System.out.println("Total triangles = " + triangleCounter);
 
