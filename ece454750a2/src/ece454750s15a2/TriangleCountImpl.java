@@ -39,7 +39,7 @@ public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
     //private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
-    private final ConcurrentHashMap<Integer, Triangle> triangleFoundConcurrentHashMap;
+    private final ConcurrentHashMap<Triangle, Integer> triangleFoundConcurrentHashMap;
     private final int numThreads;
     private int iteratorChunkSize;
 
@@ -48,7 +48,7 @@ public class TriangleCountImpl {
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
         this.numCores = numCores;
-        this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<Integer, Triangle>();
+        this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<Triangle, Integer>();
         this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
         this.iteratorChunkSize = 0;      // Just a placeholder, real value set in enumerateTriangles()
         this.triangleArrayList = new ArrayList<Triangle>();
@@ -119,14 +119,40 @@ public class TriangleCountImpl {
         return ret;
     }
 
-    public void updateTriangleFoundList (int Vertex, Triangle t) {
-        if(numCores == 1)
-            this.triangleArrayList.add(t);
+    public Triangle checkOrder(int vertexA, int vertexB, int vertexC) {
+        Triangle t = new Triangle(vertexA, vertexA, vertexC);
+
+        if (vertexA < vertexB) {
+            if (vertexB < vertexC)
+                t = new Triangle(vertexA, vertexB, vertexC);
+            else
+                t = new Triangle(vertexA, vertexC, vertexB);
+        }
+        else if (vertexB < vertexA) {
+            if (vertexA < vertexC)
+                t = new Triangle(vertexB, vertexA, vertexC);
+            else
+                t = new Triangle(vertexB, vertexC, vertexA);
+        }
+        else if (vertexC < vertexA) {
+            if (vertexA < vertexB)
+                t = new Triangle(vertexC, vertexA, vertexB);
+            else
+                t = new Triangle(vertexC, vertexB, vertexA);
+        }
+        return t;
+    }
+
+
+    public void updateTriangleFoundList (int Vertex, int vertexA, int vertexB, int vertexC) {
+        if(numCores == 1) {
+            this.triangleArrayList.add(this.checkOrder(vertexA, vertexB, vertexC));
+        }
         else {
             synchronized (triangleFoundConcurrentHashMap) {
                 // FIXME: Need better logic for keys in the HashMap.
-                Random rand = new Random();
-                triangleFoundConcurrentHashMap.put(rand.nextInt(), t);
+                //Random rand = new Random();
+                triangleFoundConcurrentHashMap.put(this.checkOrder(vertexA, vertexB, vertexC), Vertex);
             }
         }
     }
@@ -177,9 +203,9 @@ public class TriangleCountImpl {
                         if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
                             triangleCounter += 1;
                             if (numCores == 1)
-                                this.updateTriangleFoundList(vertex_index, new Triangle(vertex_index, vertex_A, vertex_B));
+                                this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
                             else
-                                this.updateTriangleFoundList(vertex_index, new Triangle(vertex_index, vertex_A, vertex_B));
+                                this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
                         }
                     }
                 }
@@ -239,7 +265,7 @@ public class TriangleCountImpl {
         }
         else {
             System.out.println("Total triangles = " + this.triangleFoundConcurrentHashMap.size());
-            return new ArrayList<Triangle>(this.triangleFoundConcurrentHashMap.values());
+            return new ArrayList<Triangle>(this.triangleFoundConcurrentHashMap.keySet());
         }
     }
 
