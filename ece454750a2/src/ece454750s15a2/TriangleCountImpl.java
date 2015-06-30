@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.*;
 import java.lang.Integer;
 import java.lang.Iterable;
+import java.lang.Override;
 import java.lang.RuntimeException;
 import java.lang.System;
 import java.lang.Thread;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,16 +41,69 @@ public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
     //private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
-    private final ConcurrentHashMap<Triangle, Integer> triangleFoundConcurrentHashMap;
+    private final ConcurrentHashMap<HashedTriangle, Integer> triangleFoundConcurrentHashMap;
     private final int numThreads;
     private int iteratorChunkSize;
 
     private ArrayList<Triangle> triangleArrayList;
 
+    public class HashedTriangle {
+        private final int x;
+        private final int y;
+        private final int z;
+
+        public HashedTriangle(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public HashedTriangle(Triangle triangle) {
+            Scanner scanner = new Scanner(triangle.toString()).useDelimiter(" ");
+            this.x = scanner.nextInt();
+            this.y = scanner.nextInt();
+            this.z = scanner.nextInt();
+        }
+
+        public Triangle convertToTriangleType(HashedTriangle hashedTriangle) {
+            return new Triangle(hashedTriangle.x, hashedTriangle.y, hashedTriangle.z);
+        }
+
+        @Override public String toString() {
+            return String.format(this.x + " " + this.y + " " + this.z);
+        }
+
+        @Override public int hashCode() {
+            return (this.x) + (this.y) + (this.z);
+        }
+
+        @Override public boolean equals(final Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final HashedTriangle otherhashedTriangle = (HashedTriangle) obj;
+            if (this.x == otherhashedTriangle.x || this.x == otherhashedTriangle.y || this.z == otherhashedTriangle.z)
+                if(this.y == otherhashedTriangle.y || this.y == otherhashedTriangle.x || this.y == otherhashedTriangle.z)
+                    if(this.z == otherhashedTriangle.z || this.z == otherhashedTriangle.x || this.z == otherhashedTriangle.y)
+                        return true;
+                    else
+                        return false;
+                else
+                    return false;
+            else
+                return false;
+            // if all else fails...
+            //return true;
+        }
+    }
+
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
         this.numCores = numCores;
-        this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<Triangle, Integer>();
+        this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<HashedTriangle, Integer>();
         this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
         this.iteratorChunkSize = 0;      // Just a placeholder, real value set in enumerateTriangles()
         this.triangleArrayList = new ArrayList<Triangle>();
@@ -120,7 +175,7 @@ public class TriangleCountImpl {
     }
 
     public Triangle checkOrder(int vertexA, int vertexB, int vertexC) {
-        Triangle t = new Triangle(vertexA, vertexA, vertexC);
+        Triangle t = new Triangle(vertexA, vertexB, vertexC);
 
         if (vertexA < vertexB) {
             if (vertexB < vertexC)
@@ -152,7 +207,8 @@ public class TriangleCountImpl {
             synchronized (triangleFoundConcurrentHashMap) {
                 // FIXME: Need better logic for keys in the HashMap.
                 //Random rand = new Random();
-                triangleFoundConcurrentHashMap.put(this.checkOrder(vertexA, vertexB, vertexC), Vertex);
+                HashedTriangle hashedTriangle = new HashedTriangle(this.checkOrder(vertexA, vertexB, vertexC));
+                triangleFoundConcurrentHashMap.putIfAbsent(hashedTriangle, Vertex);
             }
         }
     }
@@ -165,12 +221,13 @@ public class TriangleCountImpl {
         return this.iteratorChunkSize;
     }
 
-    public void triangleWorker(AdjListGraph adjacencyListOrig, int startRange, int endRange) {
+    public void triangleWorker(AdjListGraph adjacencyList, int startRange, int endRange) {
         int triangleCounter = 0;
         int numEdges = 0;
         int numVertices = 0;
 
-        AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
+        //AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
+        //AdjListGraph adjacencyList = adjacencyListOrig;
 
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
@@ -202,10 +259,7 @@ public class TriangleCountImpl {
                         numEdges_B = adjacencyList.getRelativeEdges(vertex_B);
                         if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
                             triangleCounter += 1;
-                            if (numCores == 1)
-                                this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
-                            else
-                                this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
+                            this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
                         }
                     }
                 }
@@ -264,8 +318,23 @@ public class TriangleCountImpl {
             return this.triangleArrayList;
         }
         else {
+
+            //System.out.println("triangleFoundConcurrentHashMap");
+
+            List<Triangle> triangleList = new ArrayList<Triangle>();
+
+            /*
+            for(HashedTriangle hashedTriangle : this.triangleFoundConcurrentHashMap.keySet()) {
+                //System.out.println("triangleString = " + triangleString + " value = " + this.triangleFoundConcurrentHashMap.get(triangleString).toString());
+                System.out.println("HashedTriangle = " + hashedTriangle.toString() + " hashcode = " + hashedTriangle.hashCode());
+                triangleList.add(hashedTriangle.convertToTriangleType(hashedTriangle));
+            }
+            */
+
             System.out.println("Total triangles = " + this.triangleFoundConcurrentHashMap.size());
-            return new ArrayList<Triangle>(this.triangleFoundConcurrentHashMap.keySet());
+
+
+            return new ArrayList<Triangle>(triangleList);
         }
     }
 
