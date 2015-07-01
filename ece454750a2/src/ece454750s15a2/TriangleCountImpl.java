@@ -31,6 +31,8 @@ import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -216,12 +218,39 @@ public class TriangleCountImpl {
         }
     }
 
+    public void showTriangleFoundList() {
+        System.out.println("triangleFoundList = " + this.triangleArrayList.toString());
+    }
+
     public void setIteratorChunkSize(int size) {
         this.iteratorChunkSize = size;
     }
 
     public int getIteratorChunkSize() {
         return this.iteratorChunkSize;
+    }
+
+    public ArrayList<Integer> checkIntersection(HashSet<Integer> h1, HashSet<Integer> h2) {
+        ArrayList<Integer> intersectArrayList = new ArrayList<Integer>();
+
+        for (Integer vertex : h1) {
+            if (h2.contains(vertex)) {
+                intersectArrayList.add(vertex);
+            }
+        }
+
+        return intersectArrayList;
+    }
+
+    public void cleanUpAdjLists(AdjListGraph adjListGraph, int vertexA, int vertexB, int vertexC) {
+        //adjListGraph.adjList.get(vertexA).remove(vertexB);
+        //adjListGraph.adjList.get(vertexA).remove(vertexC);
+
+        adjListGraph.adjList.get(vertexB).remove(vertexA);
+        //adjListGraph.adjList.get(vertexB).remove(vertexC);
+
+        adjListGraph.adjList.get(vertexC).remove(vertexA);
+        adjListGraph.adjList.get(vertexC).remove(vertexB);
     }
 
     public void triangleWorker(AdjListGraph adjacencyList, int startRange, int endRange) {
@@ -232,6 +261,7 @@ public class TriangleCountImpl {
         //AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
         //AdjListGraph adjacencyList = adjacencyListOrig;
         //ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(adjacencyListOrig.adjList);
+
 
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
@@ -247,8 +277,56 @@ public class TriangleCountImpl {
         Iterator<Integer> iteratorB;
         HashSet<Integer> vertex;
 
+        // naive++ triangle counting algorithm
+        for (int i = 0; i < numVertices; i += 1) {
+            ArrayList<Integer> n1 = new ArrayList<Integer>(adjacencyList.adjList.get(i));
+            for (int j : n1) {
+                ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(adjacencyList.adjList.get(i), adjacencyList.adjList.get(j)));
+                if (intersectionArrayList.size() != 0) {
+                    for (Integer l : intersectionArrayList) {
+                        if (i < j && j < l && i < l) {
+                            this.updateTriangleFoundList(i, i, j, l);
+                            this.cleanUpAdjLists(adjacencyList, i, j, l);
+                        }
+                    }
+                }
+            }
+        }
+
+        //showTriangleFoundList();
+
+        /*
+        // New algorithm.
+
+        ArrayList<ArrayList<Integer>> sortedAdjList = new ArrayList<ArrayList<Integer>>(adjacencyList.adjList);
+
+        // Sort the ArrayList of ArrayList in reverse order by degree.
+        for (List<Integer> vertex : sortedAdjList) {
+            Collections.sort(vertex);
+        }
+        Collections.sort(sortedAdjList, new Comparator<ArrayList<Integer>>() {
+            @Override
+            public int compare(ArrayList<Integer> x1, ArrayList<Integer> x2) {
+                return x2.size().compareTo(x1.size());
+            }
+        });
+
+        int totalVertices = sortedAdjList.size();
+        for(int vertex = 0; vertex < sortedAdjList.size(); vertex++) {
+            sortedAdjList.set(vertex, sortedAdjList.get(vertex));
+        }
+        for (vertex_A : sortedAdjList)
+            for (vertex_B : sortedAdjList)
+
+        */
+
         //System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
+
+        //ArrayList<Integer> adjListIterList = new ArrayList<Integer>(adjacencyList.adjList);
+
+
+        /*
         for (int vertex_index = startRange; vertex_index < endRange; vertex_index += 1) {
             vertex = adjacencyList.get(vertex_index);
             numEdges = vertex.size();
@@ -271,6 +349,10 @@ public class TriangleCountImpl {
             }
             vertex.clear();
         }
+
+
+        */
+
     }
 
     public List<Triangle> enumerateTriangles() throws IOException {
