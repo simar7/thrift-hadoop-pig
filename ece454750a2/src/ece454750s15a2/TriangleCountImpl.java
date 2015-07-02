@@ -336,16 +336,18 @@ public class TriangleCountImpl {
 
             // naive++ triangle counting algorithm
             for (int i = startRange; i < endRange; i += 1) {
-                ArrayList<Integer> n1 = new ArrayList<Integer>(this.adjListGraph.adjList.get(i));
-                for (int j : n1) {
-                    ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
-                    if (intersectionArrayList.size() != 0) {
-                        for (Integer l : intersectionArrayList) {
-                            //if (i < j && j < l && i < l) {
+                if(this.adjListGraph.adjList.get(i) != null) {
+                    ArrayList<Integer> n1 = new ArrayList<Integer>(this.adjListGraph.adjList.get(i));
+                    for (int j : n1) {
+                        ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
+                        if (intersectionArrayList.size() != 0) {
+                            for (Integer l : intersectionArrayList) {
+                                //if (i < j && j < l && i < l) {
                                 trianglesFound += 1;
                                 this.updateTriangleFoundListParallel(i, i, j, l);
                                 this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
-                            //}
+                                //}
+                            }
                         }
                     }
                 }
