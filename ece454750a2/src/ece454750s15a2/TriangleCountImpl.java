@@ -26,6 +26,7 @@ import java.lang.Iterable;
 import java.lang.Override;
 import java.lang.Runnable;
 import java.lang.RuntimeException;
+import java.lang.String;
 import java.lang.System;
 import java.lang.Thread;
 import java.util.*;
@@ -51,6 +52,7 @@ public class TriangleCountImpl {
     //private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
     //private final ConcurrentHashMap<HashedTriangle, Integer> triangleFoundConcurrentHashMap;
     private final ConcurrentHashMap<HashedTriangle, Integer> triangleFoundConcurrentHashMap = new ConcurrentHashMap<HashedTriangle, Integer>();
+    private final ConcurrentHashMap<String, Triangle> tfchamp = new ConcurrentHashMap<String, Triangle>();
     private final int numThreads;
     private int iteratorChunkSize;
 
@@ -213,15 +215,7 @@ public class TriangleCountImpl {
 
 
     public void updateTriangleFoundList (int Vertex, int vertexA, int vertexB, int vertexC) {
-        if(numCores == 1) {
             this.triangleArrayList.add(this.checkOrder(vertexA, vertexB, vertexC));
-        }
-        else {
-            //synchronized (triangleFoundConcurrentHashMap) {
-                HashedTriangle hashedTriangle = new HashedTriangle(this.checkOrder(vertexA, vertexB, vertexC));
-                triangleFoundConcurrentHashMap.putIfAbsent(hashedTriangle, Vertex);
-            //}
-        }
     }
 
     public void showTriangleFoundList() {
@@ -294,10 +288,22 @@ public class TriangleCountImpl {
             return t;
         }
 
+        public void cleanUpAdjListsParallel(AdjListGraph adjListGraph, int vertexA, int vertexB, int vertexC) {
+            //adjListGraph.adjList.get(vertexA).remove(vertexB);
+            //adjListGraph.adjList.get(vertexA).remove(vertexC);
+
+            adjListGraph.adjList.get(vertexB).remove(vertexA);
+            //adjListGraph.adjList.get(vertexB).remove(vertexC);
+
+            adjListGraph.adjList.get(vertexC).remove(vertexA);
+            adjListGraph.adjList.get(vertexC).remove(vertexB);
+        }
+
         public void updateTriangleFoundListParallel (int Vertex, int vertexA, int vertexB, int vertexC) {
                 //synchronized (triangleFoundConcurrentHashMap) {
-                HashedTriangle hashedTriangle = new HashedTriangle(this.checkOrder(vertexA, vertexB, vertexC));
-                triangleFoundConcurrentHashMap.putIfAbsent(hashedTriangle, Vertex);
+                //HashedTriangle hashedTriangle = new HashedTriangle(this.checkOrder(vertexA, vertexB, vertexC));
+                //triangleFoundConcurrentHashMap.putIfAbsent(hashedTriangle, Vertex);
+                tfchamp.putIfAbsent(vertexA + " " + vertexB + " " + vertexC + " " + Vertex, new Triangle(vertexA, vertexB, vertexC));
                 //}
         }
 
@@ -321,14 +327,12 @@ public class TriangleCountImpl {
             int numEdges_B = 0;
             int vertex_A = 0;
             int vertex_B = 0;
+            int trianglesFound = 0;
             Iterator<Integer> iteratorA;
             Iterator<Integer> iteratorB;
             HashSet<Integer> vertex;
 
             System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
-
-
-            /*
 
             // naive++ triangle counting algorithm
             for (int i = startRange; i < endRange; i += 1) {
@@ -338,72 +342,17 @@ public class TriangleCountImpl {
                     if (intersectionArrayList.size() != 0) {
                         for (Integer l : intersectionArrayList) {
                             //if (i < j && j < l && i < l) {
-                                updateTriangleFoundList(i, i, j, l);
-                                cleanUpAdjLists(this.adjListGraph, i, j, l);
-                           // }
+                                trianglesFound += 1;
+                                this.updateTriangleFoundListParallel(i, i, j, l);
+                                this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
+                            //}
                         }
                     }
                 }
             }
 
             //showTriangleFoundList();
-
-            */
-
-        /*
-        // New algorithm.
-
-        ArrayList<ArrayList<Integer>> sortedAdjList = new ArrayList<ArrayList<Integer>>(adjacencyList.adjList);
-
-        // Sort the ArrayList of ArrayList in reverse order by degree.
-        for (List<Integer> vertex : sortedAdjList) {
-            Collections.sort(vertex);
-        }
-        Collections.sort(sortedAdjList, new Comparator<ArrayList<Integer>>() {
-            @Override
-            public int compare(ArrayList<Integer> x1, ArrayList<Integer> x2) {
-                return x2.size().compareTo(x1.size());
-            }
-        });
-
-        int totalVertices = sortedAdjList.size();
-        for(int vertex = 0; vertex < sortedAdjList.size(); vertex++) {
-            sortedAdjList.set(vertex, sortedAdjList.get(vertex));
-        }
-        for (vertex_A : sortedAdjList)
-            for (vertex_B : sortedAdjList)
-
-        */
-
-            //System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
-
-
-            //ArrayList<Integer> adjListIterList = new ArrayList<Integer>(adjacencyList.adjList);
-
-
-
-        for (int vertex_index = startRange; vertex_index < endRange; vertex_index += 1) {
-            vertex = this.adjListGraph.get(vertex_index);
-            numEdges = vertex.size();
-            iteratorA = vertex.iterator();
-            while (iteratorA.hasNext()) {
-                vertex_A = iteratorA.next();
-                numEdges_A = this.adjListGraph.getRelativeEdges(vertex_A);
-                if (numEdges_A > 1) {
-                    iteratorB = vertex.iterator();
-                    while (iteratorB.hasNext()) {
-                        vertex_B = iteratorB.next();
-                        numEdges_B = this.adjListGraph.getRelativeEdges(vertex_B);
-                        if (numEdges_B > 1 && this.adjListGraph.hasEdge(vertex_A, vertex_B)) {
-                            triangleCounter += 1;
-                            this.updateTriangleFoundListParallel(vertex_index, vertex_index, vertex_A, vertex_B);
-                        }
-                    }
-                }
-                iteratorA.remove();
-            }
-            vertex.clear();
-        }
+            System.out.println("Thread #" + Thread.currentThread().getId() + " found = " + trianglesFound + " triangles");
 
         }
     }
@@ -413,16 +362,8 @@ public class TriangleCountImpl {
         int numEdges = 0;
         int numVertices = 0;
 
-        //AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
-        //AdjListGraph adjacencyList = adjacencyListOrig;
-        //ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(adjacencyListOrig.adjList);
-
-
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
-
-        //System.out.println("numVertices = " + numVertices);
-        //System.out.println("numEdges    = " + numEdges);
 
         int numEdges_A = 0;
         int numEdges_B = 0;
@@ -435,7 +376,6 @@ public class TriangleCountImpl {
         System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
         //System.out.println(adjacencyList.adjList.toString());
-
 
         // naive++ triangle counting algorithm
         for (int i = startRange; i < endRange; i += 1) {
@@ -452,67 +392,6 @@ public class TriangleCountImpl {
                 }
             }
         }
-
-        //showTriangleFoundList();
-
-        /*
-        // New algorithm.
-
-        ArrayList<ArrayList<Integer>> sortedAdjList = new ArrayList<ArrayList<Integer>>(adjacencyList.adjList);
-
-        // Sort the ArrayList of ArrayList in reverse order by degree.
-        for (List<Integer> vertex : sortedAdjList) {
-            Collections.sort(vertex);
-        }
-        Collections.sort(sortedAdjList, new Comparator<ArrayList<Integer>>() {
-            @Override
-            public int compare(ArrayList<Integer> x1, ArrayList<Integer> x2) {
-                return x2.size().compareTo(x1.size());
-            }
-        });
-
-        int totalVertices = sortedAdjList.size();
-        for(int vertex = 0; vertex < sortedAdjList.size(); vertex++) {
-            sortedAdjList.set(vertex, sortedAdjList.get(vertex));
-        }
-        for (vertex_A : sortedAdjList)
-            for (vertex_B : sortedAdjList)
-
-        */
-
-        //System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
-
-
-        //ArrayList<Integer> adjListIterList = new ArrayList<Integer>(adjacencyList.adjList);
-
-
-        /*
-        for (int vertex_index = startRange; vertex_index < endRange; vertex_index += 1) {
-            vertex = adjacencyList.get(vertex_index);
-            numEdges = vertex.size();
-            iteratorA = vertex.iterator();
-            while (iteratorA.hasNext()) {
-                vertex_A = iteratorA.next();
-                numEdges_A = adjacencyList.getRelativeEdges(vertex_A);
-                if (numEdges_A > 1) {
-                    iteratorB = vertex.iterator();
-                    while (iteratorB.hasNext()) {
-                        vertex_B = iteratorB.next();
-                        numEdges_B = adjacencyList.getRelativeEdges(vertex_B);
-                        if (numEdges_B > 1 && adjacencyList.hasEdge(vertex_A, vertex_B)) {
-                            triangleCounter += 1;
-                            this.updateTriangleFoundList(vertex_index, vertex_index, vertex_A, vertex_B);
-                        }
-                    }
-                }
-                iteratorA.remove();
-            }
-            vertex.clear();
-        }
-
-
-        */
-
     }
 
     public List<Triangle> enumerateTriangles() throws IOException {
@@ -547,28 +426,17 @@ public class TriangleCountImpl {
             }
         }
 
-        /*
+
         if (numCores == 1) {
             System.out.println("Total triangles = " + this.triangleArrayList.size());
             return this.triangleArrayList;
         }
         else {
-            List<Triangle> triangleList = new ArrayList<Triangle>();
+            List<Triangle> triangleList = new ArrayList<Triangle>(tfchamp.values());
 
-            for(HashedTriangle hashedTriangle : this.triangleFoundConcurrentHashMap.keySet()) {
-                triangleList.add(hashedTriangle.convertToTriangleType(hashedTriangle));
-                //System.out.println("HashedTriangle = " + hashedTriangle.toString() + " hashcode = " + hashedTriangle.hashCode());
-            }
-
-            System.out.println("Total triangles = " + this.triangleFoundConcurrentHashMap.size());
+            System.out.println("Total triangles = " + triangleList.size());
             return new ArrayList<Triangle>(triangleList);
         }
-        */
-
-        System.out.println("Total triangles = " + this.triangleArrayList.size());
-        //System.out.println("Total triangles = " + this.triangleFoundConcurrentHashMap.size());
-        List<Triangle> triangleList = new ArrayList<Triangle>();
-        return new ArrayList<Triangle>(triangleList);
 
     }
 
@@ -592,9 +460,7 @@ public class TriangleCountImpl {
             int current_vertex = Integer.parseInt(parts[0]);
             if (parts.length > 1) {
                 parts = parts[1].split(" +");
-                //for (String edge : parts) {
-                    adjList.addEdge(current_vertex, parts);
-                //}
+                adjList.addEdge(current_vertex, parts);
             }
         }
         br.close();
