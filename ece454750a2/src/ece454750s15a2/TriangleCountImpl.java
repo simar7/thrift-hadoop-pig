@@ -330,13 +330,19 @@ public class TriangleCountImpl {
             for (int i = startingVertex; i < numVertices; i += numCores) {
                 if (this.adjListGraph.adjList.get(i) != null) {
                     HashSet<Integer> n1 = new HashSet<Integer>(this.adjListGraph.adjList.get(i));
-                    for (int j : n1) {
-                        ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
-                        if (intersectionArrayList.size() != 0) {
-                            for (Integer l : intersectionArrayList) {
-                                trianglesFound += 1;
-                                this.updateTriangleFoundListParallel(i, i, j, l);
-                                //this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
+                    if (n1.size() >= 2) {
+                        for (int j : n1) {
+                            if (i < j) {
+                                ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
+                                if (intersectionArrayList.size() != 0) {
+                                    for (Integer l : intersectionArrayList) {
+                                        if (j < l) {
+                                            trianglesFound += 1;
+                                            this.updateTriangleFoundListParallel(i, i, j, l);
+                                            //this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -344,7 +350,7 @@ public class TriangleCountImpl {
             }
 
             //showTriangleFoundList();
-            System.out.println("Thread #" + Thread.currentThread().getId() + " found = " + trianglesFound + " triangles");
+            //System.out.println("Thread #" + Thread.currentThread().getId() + " found = " + trianglesFound + " triangles");
 
         }
     }
@@ -357,28 +363,26 @@ public class TriangleCountImpl {
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
 
-        int numEdges_A = 0;
-        int numEdges_B = 0;
-        int vertex_A = 0;
-        int vertex_B = 0;
-        Iterator<Integer> iteratorA;
-        Iterator<Integer> iteratorB;
-        HashSet<Integer> vertex;
-
         System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
         //System.out.println(adjacencyList.adjList.toString());
 
         // naive++ triangle counting algorithm
         for (int i = startRange; i < endRange; i += 1) {
-            ArrayList<Integer> n1 = new ArrayList<Integer>(adjacencyList.adjList.get(i));
-            for (int j : n1) {
-                ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(adjacencyList.adjList.get(i), adjacencyList.adjList.get(j)));
-                if (intersectionArrayList.size() != 0) {
-                    for (Integer l : intersectionArrayList) {
-                        if (i < j && j < l && i < l) {
-                            this.updateTriangleFoundList(i, i, j, l);
-                            this.cleanUpAdjLists(adjacencyList, i, j, l);
+            if (adjacencyList.adjList.get(i) != null) {
+                ArrayList<Integer> n1 = new ArrayList<Integer>(adjacencyList.adjList.get(i));
+                if (n1.size() >= 2) {
+                    for (int j : n1) {
+                        if (i < j) {
+                            ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(adjacencyList.adjList.get(i), adjacencyList.adjList.get(j)));
+                            if (intersectionArrayList.size() != 0) {
+                                for (Integer l : intersectionArrayList) {
+                                    if (j < l) {
+                                        this.updateTriangleFoundList(i, i, j, l);
+                                        //this.cleanUpAdjLists(adjacencyList, i, j, l);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -388,11 +392,23 @@ public class TriangleCountImpl {
 
     public List<Triangle> enumerateTriangles() throws IOException {
 
+        // start the clock
+        long startTime = System.currentTimeMillis();
+
         final AdjListGraph adjacencyList;
         AdjListGraph adjListreadParallel;
 
         if (numCores == 1) {
             adjacencyList = getAdjacencyList(input);
+
+            // stop the clock
+            long endTimeInputRead = System.currentTimeMillis();
+
+            // report the running time of the computation
+            long diffTimeRead = endTimeInputRead - startTime;
+
+            System.out.println("Done reading input, now counting..   [" + diffTimeRead + "ms]");
+
             triangleWorker(adjacencyList, 0, adjacencyList.getNumVertices());
         }
         else {
@@ -415,6 +431,15 @@ public class TriangleCountImpl {
             } catch (java.lang.InterruptedException ignore) {
                 System.out.println("Read Pool Interrupted!");
             }
+
+
+            // stop the clock
+            long endTimeInputRead = System.currentTimeMillis();
+
+            // report the running time of the computation
+            long diffTimeRead = endTimeInputRead - startTime;
+
+            System.out.println("Done reading input, now counting..   [" + diffTimeRead + "ms]");
 
             // since we are done now, return the input back to the requester.
             adjListreadParallel = new AdjListGraph(adjListGlobal);
@@ -500,7 +525,7 @@ public class TriangleCountImpl {
                 int numVertices = Integer.parseInt(parts[0].split(" ")[0]);
                 int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
 
-                System.out.println("Thread # " + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
+                //System.out.println("Thread # " + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
 
                 //AdjListGraph adjList = new AdjListGraph(numVertices, numEdges);
 
