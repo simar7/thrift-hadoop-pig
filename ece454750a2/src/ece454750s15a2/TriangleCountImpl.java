@@ -21,6 +21,7 @@ import java.io.*;
 import java.io.IOError;
 import java.io.IOException;
 import java.lang.*;
+import java.lang.Exception;
 import java.lang.Integer;
 import java.lang.Iterable;
 import java.lang.Override;
@@ -49,10 +50,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TriangleCountImpl {
     private byte[] input;
     private int numCores;
-    //private final CopyOnWriteArraySet<Triangle> triangleCopyOnWriteArraySetFoundList;
-    //private final ConcurrentHashMap<HashedTriangle, Integer> triangleFoundConcurrentHashMap;
-    private final ConcurrentHashMap<HashedTriangle, Integer> triangleFoundConcurrentHashMap = new ConcurrentHashMap<HashedTriangle, Integer>();
     private final ConcurrentHashMap<String, Triangle> tfchamp = new ConcurrentHashMap<String, Triangle>();
+    private final ConcurrentHashMap<Integer, HashSet<Integer>> adjListGlobal = new ConcurrentHashMap<Integer, HashSet<Integer>>();
     private final int numThreads;
     private int iteratorChunkSize;
 
@@ -114,7 +113,6 @@ public class TriangleCountImpl {
     public TriangleCountImpl(byte[] input, int numCores) {
         this.input = input;
         this.numCores = numCores;
-        //this.triangleFoundConcurrentHashMap = new ConcurrentHashMap<HashedTriangle, Integer>();
         this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
         this.iteratorChunkSize = 0;      // Just a placeholder, real value set in enumerateTriangles()
         this.triangleArrayList = new ArrayList<Triangle>();
@@ -124,13 +122,13 @@ public class TriangleCountImpl {
         private int V;
         private int E;
         private int Node;
-        private HashMap<Integer, HashSet<Integer>> adjList;
+        private ConcurrentHashMap<Integer, HashSet<Integer>> adjList;
 
         public AdjListGraph(int V, int E) {
             if (V < 0) throw new RuntimeException("Number of vertices cannot be negative.");
             this.V = V;
             this.E = 0;
-            this.adjList = new HashMap<Integer, HashSet<Integer>>();
+            this.adjList = new ConcurrentHashMap<Integer, HashSet<Integer>>();
             for (int i = 0; i < V; ++i) {
                 this.adjList.put(V, new HashSet<Integer>());
             }
@@ -139,7 +137,13 @@ public class TriangleCountImpl {
         public AdjListGraph(AdjListGraph adjListOld) {
             this.V = adjListOld.getNumVertices();
             this.E = adjListOld.getTotalNumEdges();
-            this.adjList = new HashMap<Integer, HashSet<Integer>>(adjListOld.adjList);
+            this.adjList = new ConcurrentHashMap<Integer, HashSet<Integer>>(adjListOld.adjList);
+        }
+
+        public AdjListGraph(ConcurrentHashMap<Integer, HashSet<Integer>> adjListHM) {
+            this.V = adjListHM.size();
+            this.E = 0;
+            this.adjList = new ConcurrentHashMap<Integer, HashSet<Integer>>(adjListHM);
         }
 
         public void addEdge(int i, String[] edges) {
@@ -153,7 +157,6 @@ public class TriangleCountImpl {
             if (this.adjList.put(i, edgesSet) == null)
                 this.E += 1;
         }
-
 
         public void removeVertex(int i) {
             this.adjList.remove(i);
@@ -215,7 +218,7 @@ public class TriangleCountImpl {
 
 
     public void updateTriangleFoundList (int Vertex, int vertexA, int vertexB, int vertexC) {
-            this.triangleArrayList.add(this.checkOrder(vertexA, vertexB, vertexC));
+            this.triangleArrayList.add(new Triangle(vertexA, vertexB, vertexC));
     }
 
     public void showTriangleFoundList() {
@@ -257,11 +260,13 @@ public class TriangleCountImpl {
         private AdjListGraph adjListGraph;
         private int startRange = 0;
         private int endRange = 0;
+        private int startingVertex = 0;
 
-        public triangleWorkerParallel(AdjListGraph adjacencyList, int startRange, int endRange) {
+        public triangleWorkerParallel(AdjListGraph adjacencyList, int startRange, int endRange, int startingVertex) {
             this.adjListGraph = adjacencyList;
             this.startRange = startRange;
             this.endRange = endRange;
+            this.startingVertex = startingVertex;
         }
 
         public Triangle checkOrder(int vertexA, int vertexB, int vertexC) {
@@ -300,11 +305,7 @@ public class TriangleCountImpl {
         }
 
         public void updateTriangleFoundListParallel (int Vertex, int vertexA, int vertexB, int vertexC) {
-                //synchronized (triangleFoundConcurrentHashMap) {
-                //HashedTriangle hashedTriangle = new HashedTriangle(this.checkOrder(vertexA, vertexB, vertexC));
-                //triangleFoundConcurrentHashMap.putIfAbsent(hashedTriangle, Vertex);
                 tfchamp.putIfAbsent(vertexA + " " + vertexB + " " + vertexC + " " + Vertex, new Triangle(vertexA, vertexB, vertexC));
-                //}
         }
 
         public void run() {
@@ -312,40 +313,31 @@ public class TriangleCountImpl {
             int numEdges = 0;
             int numVertices = 0;
 
-            //AdjListGraph adjacencyList = new AdjListGraph(adjacencyListOrig);
-            //AdjListGraph adjacencyList = adjacencyListOrig;
-            //ArrayList<ArrayList<Integer>> adjacencyList = new ArrayList<ArrayList<Integer>>(adjacencyListOrig.adjList);
-
-
             numVertices = this.adjListGraph.getNumVertices();
             numEdges = this.adjListGraph.getTotalNumEdges();
 
             //System.out.println("numVertices = " + numVertices);
             //System.out.println("numEdges    = " + numEdges);
 
-            int numEdges_A = 0;
-            int numEdges_B = 0;
-            int vertex_A = 0;
-            int vertex_B = 0;
-            int trianglesFound = 0;
-            Iterator<Integer> iteratorA;
-            Iterator<Integer> iteratorB;
-            HashSet<Integer> vertex;
 
-            System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
+            int trianglesFound = 0;
+
+            //System.out.println("Thread #" + Thread.currentThread().getId() + " sees adjListGlobal = " + this.adjListGraph.adjList.toString());
+
+            //System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
             // naive++ triangle counting algorithm
-            for (int i = startRange; i < endRange; i += 1) {
-                ArrayList<Integer> n1 = new ArrayList<Integer>(this.adjListGraph.adjList.get(i));
-                for (int j : n1) {
-                    ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
-                    if (intersectionArrayList.size() != 0) {
-                        for (Integer l : intersectionArrayList) {
-                            //if (i < j && j < l && i < l) {
+            for (int i = startingVertex; i < numVertices; i += numCores) {
+                if (this.adjListGraph.adjList.get(i) != null) {
+                    HashSet<Integer> n1 = new HashSet<Integer>(this.adjListGraph.adjList.get(i));
+                    for (int j : n1) {
+                        ArrayList<Integer> intersectionArrayList = new ArrayList<Integer>(checkIntersection(this.adjListGraph.adjList.get(i), this.adjListGraph.adjList.get(j)));
+                        if (intersectionArrayList.size() != 0) {
+                            for (Integer l : intersectionArrayList) {
                                 trianglesFound += 1;
                                 this.updateTriangleFoundListParallel(i, i, j, l);
-                                this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
-                            //}
+                                //this.cleanUpAdjListsParallel(this.adjListGraph, i, j, l);
+                            }
                         }
                     }
                 }
@@ -395,35 +387,60 @@ public class TriangleCountImpl {
     }
 
     public List<Triangle> enumerateTriangles() throws IOException {
-        final AdjListGraph adjacencyList = getAdjacencyList(input);
+
+        final AdjListGraph adjacencyList;
+        AdjListGraph adjListreadParallel;
 
         if (numCores == 1) {
+            adjacencyList = getAdjacencyList(input);
             triangleWorker(adjacencyList, 0, adjacencyList.getNumVertices());
-        } else {
-            ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
+        }
+        else {
+            ExecutorService readpool = Executors.newFixedThreadPool(this.numThreads);
 
-            this.setIteratorChunkSize(adjacencyList.getNumVertices() / this.numThreads);
+            int readChunkSize = input.length / this.numThreads;
 
             int offset = 0;
             for (int i = 0; i < this.numThreads; ++i) {
                 final int startRange = i > 0 ? offset + 1 : 0;
-                final int endRange = offset + this.getIteratorChunkSize();
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        triangleWorkerParallel t = new triangleWorkerParallel (adjacencyList, startRange, endRange);
-                        t.run();
-                    }
-                });
-                offset += this.getIteratorChunkSize();
+                final int endRange = offset + readChunkSize;
+                readpool.submit(new getAdjacencyListParallel(input, startRange, endRange));
+                offset += readChunkSize;
+            }
+
+            readpool.shutdown();
+
+            try {
+                readpool.awaitTermination(1, TimeUnit.DAYS);
+            } catch (java.lang.InterruptedException ignore) {
+                System.out.println("Read Pool Interrupted!");
+            }
+
+            // since we are done now, return the input back to the requester.
+            adjListreadParallel = new AdjListGraph(adjListGlobal);
+            //System.out.println("Size of global shared adjListGraph = " + adjListreadParallel.adjList.size());
+            //System.out.print("adjListGlobal = " + adjListGlobal.toString());
+
+            ExecutorService pool = Executors.newFixedThreadPool(this.numThreads);
+
+            //this.setIteratorChunkSize(adjacencyList.getNumVertices() / this.numThreads);
+
+            //int offset = 0;
+            for (int i = 0; i < this.numThreads; ++i) {
+                //final int startRange = i > 0 ? offset + 1 : 0;
+                //final int endRange = offset + this.getIteratorChunkSize();
+                pool.submit(new triangleWorkerParallel(adjListreadParallel, i, 0, i));
+                //offset += this.getIteratorChunkSize();
             }
 
             pool.shutdown();
+
             try {
                 pool.awaitTermination(1, TimeUnit.DAYS);
             } catch (java.lang.InterruptedException ignore) {
-
+                System.out.println("Pool Interrupted!");
             }
+
         }
 
 
@@ -433,9 +450,78 @@ public class TriangleCountImpl {
         }
         else {
             List<Triangle> triangleList = new ArrayList<Triangle>(tfchamp.values());
-
             System.out.println("Total triangles = " + triangleList.size());
             return new ArrayList<Triangle>(triangleList);
+        }
+
+    }
+
+    public class getAdjacencyListParallel implements Runnable {
+        private int startRange = 0;
+        private int endRange = 0;
+        private int totalEdgesFound = 0;
+        private byte[] data;
+
+        public getAdjacencyListParallel(byte[] input, int startRange, int endRange) {
+            this.startRange = startRange;
+            this.endRange = endRange;
+            this.data = input;
+        }
+
+        public void addEdgeParallel(int i, String[] edges) {
+            HashSet<Integer> edgesSet = new HashSet<Integer>();
+
+            for (String edge : edges) {
+                if(Integer.parseInt(edge) > i) {
+                    edgesSet.add(Integer.parseInt(edge));
+                    this.totalEdgesFound += 1;
+                }
+            }
+
+            adjListGlobal.putIfAbsent(i, edgesSet);
+        }
+
+        public int getTotalEdgesFound() {
+            return this.totalEdgesFound;
+        }
+
+        public void run() {
+
+            InputStream istream = new ByteArrayInputStream(this.data);
+            BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+            try {
+                String strLine = br.readLine();
+
+                if (!strLine.contains("vertices") || !strLine.contains("edges")) {
+                    System.err.println("Invalid graph file format. Offending line: " + strLine);
+                    System.exit(-1);
+                }
+                String parts[] = strLine.split(", ");
+                int numVertices = Integer.parseInt(parts[0].split(" ")[0]);
+                int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
+
+                System.out.println("Thread # " + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
+
+                //AdjListGraph adjList = new AdjListGraph(numVertices, numEdges);
+
+                for (int i = this.startRange; (i < this.endRange && (strLine = br.readLine()) != null && !strLine.equals("")); ++i) {
+                    parts = strLine.split(": ");
+                    int current_vertex = Integer.parseInt(parts[0]);
+                    if (parts.length > 1) {
+                        parts = parts[1].split(" +");
+                        //adjList.addEdge(current_vertex, parts);
+                        this.addEdgeParallel(current_vertex, parts);
+                        //System.out.println("Thread #" + Thread.currentThread().getId() + " Adding: Vertex = " + current_vertex + " neighbors = " + Arrays.toString(parts));
+                    }
+                }
+
+                //System.out.println("Size of global shared adjListGraph = " + adjList.size());
+
+                br.close();
+            } catch (Exception e) {
+                e.getStackTrace();
+            }
+            //return adjList;
         }
 
     }
