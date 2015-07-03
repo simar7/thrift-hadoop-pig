@@ -420,7 +420,7 @@ public class TriangleCountImpl {
             for (int i = 0; i < this.numThreads; ++i) {
                 final int startRange = i > 0 ? offset + 1 : 0;
                 final int endRange = offset + readChunkSize;
-                readpool.submit(new getAdjacencyListParallel(input, startRange, endRange));
+                readpool.submit(new getAdjacencyListParallel(input, i, endRange, i));
                 offset += readChunkSize;
             }
 
@@ -485,11 +485,13 @@ public class TriangleCountImpl {
         private int startRange = 0;
         private int endRange = 0;
         private int totalEdgesFound = 0;
+        private int startingVertex = 0;
         private byte[] data;
 
-        public getAdjacencyListParallel(byte[] input, int startRange, int endRange) {
+        public getAdjacencyListParallel(byte[] input, int startRange, int endRange, int startingVertex) {
             this.startRange = startRange;
             this.endRange = endRange;
+            this.startingVertex = startingVertex;
             this.data = input;
         }
 
@@ -515,8 +517,10 @@ public class TriangleCountImpl {
             InputStream istream = new ByteArrayInputStream(this.data);
             BufferedReader br = new BufferedReader(new InputStreamReader(istream));
             try {
+                // Skip the first line.
                 String strLine = br.readLine();
 
+                // File error handling.
                 if (!strLine.contains("vertices") || !strLine.contains("edges")) {
                     System.err.println("Invalid graph file format. Offending line: " + strLine);
                     System.exit(-1);
@@ -525,19 +529,26 @@ public class TriangleCountImpl {
                 int numVertices = Integer.parseInt(parts[0].split(" ")[0]);
                 int numEdges = Integer.parseInt(parts[1].split(" ")[0]);
 
-                //System.out.println("Thread # " + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
 
-                //AdjListGraph adjList = new AdjListGraph(numVertices, numEdges);
+                // Skip over to the right start line per thread.
+                for (int i = 0; i < startRange + 1; i++)
+                    strLine = br.readLine();
 
-                for (int i = this.startRange; (i < this.endRange && (strLine = br.readLine()) != null && !strLine.equals("")); ++i) {
+                System.out.println("Thread #" + Thread.currentThread().getId() + " first line = " + strLine);
+
+                for (int i = this.startRange; (i < this.endRange && (strLine != null) && !strLine.equals("")); ++i) {
                     parts = strLine.split(": ");
                     int current_vertex = Integer.parseInt(parts[0]);
                     if (parts.length > 1) {
                         parts = parts[1].split(" +");
                         //adjList.addEdge(current_vertex, parts);
                         this.addEdgeParallel(current_vertex, parts);
-                        //System.out.println("Thread #" + Thread.currentThread().getId() + " Adding: Vertex = " + current_vertex + " neighbors = " + Arrays.toString(parts));
+                        System.out.println("Thread #" + Thread.currentThread().getId() + " Adding: Vertex = " + current_vertex + " neighbors = " + Arrays.toString(parts));
                     }
+
+                    // skip over the lines that other threads will process.
+                    for (int j = 0; j < startRange + numThreads; j++)
+                        strLine = br.readLine();
                 }
 
                 //System.out.println("Size of global shared adjListGraph = " + adjList.size());
