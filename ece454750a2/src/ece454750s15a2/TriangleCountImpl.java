@@ -336,7 +336,7 @@ public class TriangleCountImpl {
 
             //System.out.println("Thread #" + Thread.currentThread().getId() + " sees adjListGlobal = " + this.adjListGraph.adjList.toString());
 
-            System.out.println("[triangleWorkerParallel] Thread #" + Thread.currentThread().getId() + ": startRange = " + startingVertex + " endRange = " + TriangleCountImpl.this.totalVertices);
+            //System.out.println("[triangleWorkerParallel] Thread #" + Thread.currentThread().getId() + ": startRange = " + startingVertex + " endRange = " + TriangleCountImpl.this.totalVertices);
 
             // naive++ triangle counting algorithm
             for (int i = startingVertex; i < TriangleCountImpl.this.totalVertices; i += numCores) {
@@ -362,7 +362,7 @@ public class TriangleCountImpl {
             }
 
             //showTriangleFoundList();
-            System.out.println("Thread #" + Thread.currentThread().getId() + " found = " + trianglesFound + " triangles");
+            //System.out.println("Thread #" + Thread.currentThread().getId() + " found = " + trianglesFound + " triangles");
 
         }
     }
@@ -375,7 +375,7 @@ public class TriangleCountImpl {
         numVertices = adjacencyList.getNumVertices();
         numEdges = adjacencyList.getTotalNumEdges();
 
-        System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
+        //System.out.println("Thread #" + Thread.currentThread().getId() + ": startRange = " + startRange + " endRange = " + endRange);
 
         //System.out.println(adjacencyList.adjList.toString());
 
@@ -475,7 +475,7 @@ public class TriangleCountImpl {
             // report the running time of the computation
             long diffTimeRead = endTimeInputRead - startTime;
 
-            System.out.println("adjListGlobal has = " + adjListGlobal.size() + " entries.");
+            //System.out.println("adjListGlobal has = " + adjListGlobal.size() + " entries.");
             System.out.println("Done reading input, now counting..   [" + diffTimeRead + "ms]");
 
             // since we are done now, return the input back to the requester.
@@ -575,7 +575,7 @@ public class TriangleCountImpl {
 
                 //System.out.println("Thread #" + Thread.currentThread().getId() + " first line = " + strLine);
 
-                System.out.println("[getAdjacencyListParallel] Thread #" + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
+                //System.out.println("[getAdjacencyListParallel] Thread #" + Thread.currentThread().getId() + " startRange = " + startRange + " endRange = " + endRange);
 
                 int totalEntriesAdded = 0;
 
@@ -587,15 +587,15 @@ public class TriangleCountImpl {
                         totalEntriesAdded += 1;
                         //adjList.addEdge(current_vertex, parts);
                         this.addEdgeParallel(current_vertex, parts);
-                        if (numVertices < 10)
-                            System.out.println("Thread #" + Thread.currentThread().getId() + " Adding: Vertex = " + current_vertex + " neighbors = " + Arrays.toString(parts));
+                        //if (numVertices < 10)
+                            //System.out.println("Thread #" + Thread.currentThread().getId() + " Adding: Vertex = " + current_vertex + " neighbors = " + Arrays.toString(parts));
                     }
 
                     strLine = br.readLine();
                 }
 
                 //System.out.println("Size of global shared adjListGraph = " + adjListGlobal.size());
-                System.out.println("[getAdjacencyListParallel] Thread #" + Thread.currentThread().getId() + " added = " + totalEntriesAdded + " entries");
+                //System.out.println("[getAdjacencyListParallel] Thread #" + Thread.currentThread().getId() + " added = " + totalEntriesAdded + " entries");
 
                 br.close();
             } catch (Exception e) {
