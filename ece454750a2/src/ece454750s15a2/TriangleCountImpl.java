@@ -579,7 +579,7 @@ public class TriangleCountImpl {
 
                 int totalEntriesAdded = 0;
 
-                for (int i = this.startRange; (i < numVertices && strLine != null && !strLine.equals("")); ++i) {
+                for (int i = this.startRange; (i < endRange && strLine != null && !strLine.equals("")); ++i) {
                     parts = strLine.split(": ");
                     int current_vertex = Integer.parseInt(parts[0]);
                     if (parts.length > 1) {
