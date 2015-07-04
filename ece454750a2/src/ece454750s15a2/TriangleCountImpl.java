@@ -116,8 +116,17 @@ public class TriangleCountImpl {
         this.input = input;
         this.totalEdges = 0;
         this.totalVertices = 0;
-        this.numCores = numCores;
-        this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
+
+        // HACK: Odd numbered cores are a mess.
+        if (numCores % 2 == 0) {
+            this.numCores = numCores;
+            this.numThreads = numCores;      // 1 thread per core since these are CPU bound.
+        }
+        else {
+            this.numCores = numCores + 1;
+            this.numThreads = numCores + 1;      // 1 thread per core since these are CPU bound.
+        }
+
         this.iteratorChunkSize = 0;      // Just a placeholder, real value set in enumerateTriangles()
         this.triangleArrayList = new ArrayList<Triangle>();
     }
