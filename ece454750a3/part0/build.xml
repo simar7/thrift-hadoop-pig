@@ -1,0 +1,80 @@
+<project name="part0" default="part0" basedir=".">
+
+    <description>ECE 454 / 750 Assignment 2 Part B</description>
+
+    <property name="src" location="src" />
+    <property name="build" location="build" />
+    <property name="output" location="outputFolder" />
+    <property name="input" location="inputFolder" />
+    <property name="hadoop.home" location="/usr/hdp/2.2.4.2-2/hadoop/" />
+    <property name="tuxbook.hadoop.home" location="/usr/local/hadoop/" />
+
+    <target name="init">
+        <tstamp />
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build}/log"/>
+        <mkdir dir="${input}" />
+    </target>
+
+    <path id="build.classpath">
+        <fileset dir="${hadoop.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="tux.build.classpath">
+        <fileset dir="${tuxbook.hadoop.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="part0.classpath">
+        <path refid="build.classpath" />
+        <pathelement path="${build}" />
+        <pathelement path="part0.jar" />
+    </path>
+
+    <path id="tuxpart0.classpath">
+        <path refid="tux.build.classpath" />
+        <pathelement path="${build}" />
+        <pathelement path="part0.jar" />
+    </path>
+
+    <target name="compile" depends="init">
+        <echo message="Running ant compile..." />
+        <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}">
+            <classpath refid="build.classpath" />
+        </javac>
+        <echo message="Compilation done."/>
+    </target>
+
+    <target name="tuxcompile" depends="init">
+        <echo message="Running ant tuxcompile" />
+        <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}">
+            <classpath refid="tux.build.classpath" />
+        </javac>
+        <echo message="Compilation done."/>
+    </target>
+
+
+    <target name="part0" description="Runs a sample WordCount MR job." depends="compile">
+        <jar jarfile="part0.jar" basedir="${build}"/>
+        <sequential>
+            <echo>Build Part0.jar</echo>
+            <java classname="Part0"
+                  classpathref="part0.classpath" failonerror="true">
+                <arg line="${input} ${output}"/>
+            </java>
+        </sequential>
+    </target>
+
+    <target name="tuxpart0" description="Runs a sample WordCount MR job." depends="tuxcompile">
+        <jar jarfile="part0.jar" basedir="${build}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}" />
+        <delete file="part0.jar" />
+        <delete dir="${output}" />
+    </target>
+</project>

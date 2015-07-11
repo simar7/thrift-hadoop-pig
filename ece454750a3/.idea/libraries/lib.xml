@@ -1,0 +1,31 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/common/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/hdfs/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/httpfs/tomcat/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/kms/tomcat/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/mapreduce/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/tools/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/yarn/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/common/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/hdfs/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/tools/lib" />
+      <root url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/yarn/lib" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/common/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/hdfs/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/httpfs/tomcat/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/kms/tomcat/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/mapreduce/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/tools/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/yarn/lib" recursive="false" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/common/lib" recursive="false" type="SOURCES" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/hdfs/lib" recursive="false" type="SOURCES" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/tools/lib" recursive="false" type="SOURCES" />
+    <jarDirectory url="file://$USER_HOME$/hadoop/hadoop-2.7.1/share/hadoop/yarn/lib" recursive="false" type="SOURCES" />
+  </library>
+</component>
