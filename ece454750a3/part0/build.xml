@@ -59,13 +59,6 @@
 
     <target name="part0" description="Runs a sample WordCount MR job." depends="compile">
         <jar jarfile="part0.jar" basedir="${build}"/>
-        <sequential>
-            <echo>Build Part0.jar</echo>
-            <java classname="Part0"
-                  classpathref="part0.classpath" failonerror="true">
-                <arg line="${input} ${output}"/>
-            </java>
-        </sequential>
     </target>
 
     <target name="tuxpart0" description="Runs a sample WordCount MR job." depends="tuxcompile">
