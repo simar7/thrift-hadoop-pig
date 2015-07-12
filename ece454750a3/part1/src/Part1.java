@@ -8,7 +8,10 @@
 
  */
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -17,20 +20,130 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.apache.tomcat.dbcp.pool.impl.GenericKeyedObjectPool;
-
 
 public class Part1 {
 
-    public static class Part1Mapper
-            extends Mapper<Object, Text, Text, DoubleWritable> {
+    public static class StringArrayListWritable implements Writable {
+        private ArrayList<String> data = new ArrayList<String>();
+
+        public StringArrayListWritable() {
+
+        }
+
+        public StringArrayListWritable(ArrayList<String> data) {
+            this.data = data;
+        }
+
+        public void addData(String data) {
+            this.data.add(data);
+        }
+
+        public void write(DataOutput out) throws IOException {
+            int length = 0;
+            if (this.data != null) {
+                length = this.data.size();
+            }
+
+            out.writeInt(length);
+
+            for (int i = 0; i < length; i++) {
+                out.writeUTF(this.data.get(i));
+            }
+        }
+
+        public void readFields(DataInput in) throws IOException {
+            int length = in.readInt();
+            data = new ArrayList<String>();
+            for (int i = 0; i < length; i++) {
+                data.add(in.readUTF());
+            }
+        }
+
+        public String toString() {
+            if (this.data.size() == 0) {
+                return "";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (String s : data) {
+                sb.append(s).append(" ");
+            }
+            // trim trailing space
+            sb.setLength(sb.length() - 1);
+            return sb.toString();
+        }
+    }
+
+    public static class DoubleArrayListWritable implements Writable {
+        //private double[] data;
+        private ArrayList<Double> data = new ArrayList<Double>();
+
+        public DoubleArrayListWritable() {
+
+        }
+
+        public DoubleArrayListWritable(ArrayList<Double> data) {
+            this.data = data;
+        }
+
+        public ArrayList<Double> getData() {
+            return this.data;
+        }
+
+        public void setData(ArrayList<Double> data) {
+            this.data = data;
+        }
+
+        public void write(DataOutput out) throws IOException {
+            int length = 0;
+            if (this.data != null) {
+                length = this.data.size();
+            }
+
+            out.writeInt(length);
+
+            for (int i = 0; i < length; i++) {
+                out.writeDouble(this.data.get(i));
+            }
+        }
+
+        public void readFields(DataInput in) throws IOException {
+            int length = in.readInt();
+            data = new ArrayList<Double>(length);
+            for (int i = 0; i < length; i++) {
+                data.add(in.readDouble());
+            }
+        }
+
+        public void addData(double data) {
+            this.data.add(data);
+        }
+
+        public String toString() {
+            if (this.data.size() == 0) {
+                return "";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (double d : data) {
+                sb.append(d).append(" ");
+            }
+            // trim trailing space
+            sb.setLength(sb.length() - 1);
+            return sb.toString();
+        }
+    }
+
+    public static class Part1Mapper extends Mapper<Object, Text, Text, StringArrayListWritable> {
 
         private Text sampleID = new Text();
-        private DoubleWritable highestExpValue = new DoubleWritable();
+        //private DoubleWritable highestExpValue = new DoubleWritable();
+        //private DoubleArrayListWritable listOfGenes = new DoubleArrayListWritable();
+        private StringArrayListWritable stringListOfGenes = new StringArrayListWritable();
 
         public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
@@ -46,11 +159,13 @@ public class Part1 {
                 }
                 if ((curExpValue = Double.parseDouble(itr.nextToken())) >= maxExpValue) {
                     maxExpValue = curExpValue;
+                    //listOfGenes.addData(curExpValue);
+                    stringListOfGenes.addData(String.valueOf(curExpValue));
                 }
                 geneNumber++;
             }
-            highestExpValue.set(maxExpValue);
-            context.write(sampleID, highestExpValue);
+            //highestExpValue.set(maxExpValue);
+            context.write(sampleID, stringListOfGenes);
         }
     }
 
