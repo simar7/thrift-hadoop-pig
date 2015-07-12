@@ -3,9 +3,8 @@
 /*
  Objective: Find the highest expression value
             in the given input files.
- Input:     sample_1: 0.8, 0.8, 0.5
- Output:    sample_1: 0.8, 0.8
-
+ Input:     sample_1,0.8,0.8,0.5
+ Output:    sample_1,gene_1,gene_2
  */
 
 import java.io.DataInput;
