@@ -38,13 +38,13 @@ public class Part1 {
             this.data = data;
         }
 
-        public void addData(String data) {
-            this.data.add(data);
+        public void addData(int geneNumber) {
+            this.data.add("gene_" + geneNumber);
         }
 
-        public void recycleData(String data) {
+        public void recycleData(int geneNumber) {
             this.data.clear();
-            this.addData(data);
+            this.addData(geneNumber);
         }
 
         public void write(DataOutput out) throws IOException {
@@ -75,7 +75,7 @@ public class Part1 {
 
             StringBuilder sb = new StringBuilder();
             for (String s : data) {
-                sb.append(s).append(" ");
+                sb.append(s).append(",");
             }
             // trim trailing space
             sb.setLength(sb.length() - 1);
@@ -166,9 +166,9 @@ public class Part1 {
                     //listOfGenes.addData(curExpValue);
                     // Recycle if we already have existing values
                     if (maxExpValue != 0 && maxExpValue != curExpValue) {
-                        stringListOfGenes.recycleData(String.valueOf(curExpValue));
+                        stringListOfGenes.recycleData(geneNumber);
                     } else {
-                        stringListOfGenes.addData(String.valueOf(curExpValue));
+                        stringListOfGenes.addData(geneNumber);
                     }
                     maxExpValue = curExpValue;
                 }
