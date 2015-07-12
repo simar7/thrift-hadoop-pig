@@ -42,6 +42,11 @@ public class Part1 {
             this.data.add(data);
         }
 
+        public void recycleData(String data) {
+            this.data.clear();
+            this.addData(data);
+        }
+
         public void write(DataOutput out) throws IOException {
             int length = 0;
             if (this.data != null) {
@@ -158,9 +163,14 @@ public class Part1 {
                     continue;
                 }
                 if ((curExpValue = Double.parseDouble(itr.nextToken())) >= maxExpValue) {
-                    maxExpValue = curExpValue;
                     //listOfGenes.addData(curExpValue);
-                    stringListOfGenes.addData(String.valueOf(curExpValue));
+                    // Recycle if we already have existing values
+                    if (maxExpValue != 0 && maxExpValue != curExpValue) {
+                        stringListOfGenes.recycleData(String.valueOf(curExpValue));
+                    } else {
+                        stringListOfGenes.addData(String.valueOf(curExpValue));
+                    }
+                    maxExpValue = curExpValue;
                 }
                 geneNumber++;
             }
