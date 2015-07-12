@@ -1,0 +1,76 @@
+<project name="part2" default="part2" basedir=".">
+
+    <description>ECE 454 / 750 Assignment 2 Part B</description>
+
+    <property name="src" location="src" />
+    <property name="build" location="build" />
+    <property name="output" location="outputFolder" />
+    <property name="input" location="inputFolder" />
+    <property name="hadoop.home" location="/usr/hdp/2.2.4.2-2/hadoop/"/>
+    <property name="tuxbook.hadoop.home" location="/usr/local/hadoop/"/>
+
+    <target name="init">
+        <tstamp />
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build}/log"/>
+        <mkdir dir="${input}" />
+    </target>
+
+    <path id="build.classpath">
+        <fileset dir="${hadoop.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="tux.build.classpath">
+        <fileset dir="${tuxbook.hadoop.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="part2.classpath">
+        <path refid="build.classpath" />
+        <pathelement path="${build}" />
+        <pathelement path="part2.jar" />
+    </path>
+
+    <path id="tuxpart2.classpath">
+        <path refid="tux.build.classpath"/>
+        <pathelement path="${build}"/>
+        <pathelement path="part2.jar"/>
+    </path>
+
+    <target name="compile" depends="init">
+        <echo message="Running ant compile..." />
+        <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}">
+            <classpath refid="build.classpath" />
+        </javac>
+        <echo message="Compilation done."/>
+    </target>
+
+    <target name="tuxcompile" depends="init">
+        <echo message="Running ant tuxcompile"/>
+        <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}">
+            <classpath refid="tux.build.classpath"/>
+        </javac>
+        <echo message="Compilation done."/>
+    </target>
+
+
+    <target name="part2" description="Runs part2 of A3." depends="compile">
+        <echo message="Jarring..."/>
+        <jar jarfile="part2.jar" basedir="${build}"/>
+    </target>
+
+    <target name="tuxpart2" description="Runs part2 of A3" depends="tuxcompile">
+        <echo message="Jarring..."/>
+        <jar jarfile="part2.jar" basedir="${build}"/>
+    </target>
+
+    <target name="clean">
+        <echo message="Housekeeping..."/>
+        <delete dir="${build}" />
+        <delete file="part2.jar" />
+        <delete dir="${output}" />
+    </target>
+</project>
