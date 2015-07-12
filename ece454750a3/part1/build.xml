@@ -6,7 +6,8 @@
     <property name="build" location="build" />
     <property name="output" location="outputFolder" />
     <property name="input" location="inputFolder" />
-    <property name="hadoop.home" location="/usr/local/hadoop/" />
+    <property name="hadoop.home" location="/usr/hdp/2.2.4.2-2/hadoop/"/>
+    <property name="tuxbook.hadoop.home" location="/usr/local/hadoop/"/>
 
     <target name="init">
         <tstamp />
@@ -21,10 +22,22 @@
         </fileset>
     </path>
 
+    <path id="tux.build.classpath">
+        <fileset dir="${tuxbook.hadoop.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
     <path id="part1.classpath">
         <path refid="build.classpath" />
         <pathelement path="${build}" />
         <pathelement path="part1.jar" />
+    </path>
+
+    <path id="tuxpart1.classpath">
+        <path refid="tux.build.classpath"/>
+        <pathelement path="${build}"/>
+        <pathelement path="part1.jar"/>
     </path>
 
     <target name="compile" depends="init">
@@ -35,12 +48,27 @@
         <echo message="Compilation done."/>
     </target>
 
-    <target name="part1" description="Runs a sample WordCount MR job." depends="compile">
-        <echo message="Now jarring..." />
+    <target name="tuxcompile" depends="init">
+        <echo message="Running ant tuxcompile"/>
+        <javac source="1.6" target="1.6" debug="true" includeantruntime="false" srcdir="${src}" destdir="${build}">
+            <classpath refid="tux.build.classpath"/>
+        </javac>
+        <echo message="Compilation done."/>
+    </target>
+
+
+    <target name="part1" description="Runs part1 of A3." depends="compile">
+        <echo message="Jarring..."/>
+        <jar jarfile="part1.jar" basedir="${build}"/>
+    </target>
+
+    <target name="tuxpart1" description="Runs part1 of A3" depends="tuxcompile">
+        <echo message="Jarring..."/>
         <jar jarfile="part1.jar" basedir="${build}"/>
     </target>
 
     <target name="clean">
+        <echo message="Housekeeping..."/>
         <delete dir="${build}" />
         <delete file="part1.jar" />
         <delete dir="${output}" />
