@@ -1,0 +1,24 @@
+<component name="libraryTable">
+  <library name="pig-0.14">
+    <CLASSES>
+      <root url="file:///usr/lib/pig/pig-0.14.0" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file:///usr/lib/pig/pig-0.14.0/docs/api" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file:///usr/lib/pig/pig-0.14.0/contrib/piggybank/java/src/main/java" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/contrib/piggybank/java/src/test/java" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/lib-src/bzip2" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/shims/src/hadoop20" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/shims/src/hadoop23" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/shims/test/hadoop20" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/shims/test/hadoop23" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/src" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/test" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/test/e2e/pig/udfs/java" />
+      <root url="file:///usr/lib/pig/pig-0.14.0/tutorial/src" />
+    </SOURCES>
+    <jarDirectory url="file:///usr/lib/pig/pig-0.14.0" recursive="false" />
+  </library>
+</component>
