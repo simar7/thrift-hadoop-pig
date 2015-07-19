@@ -1,15 +1,28 @@
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.Tuple;
 
 public class SimiCalc extends EvalFunc<String> {
 
+    public String splitter = ",";
+
+    public SimiCalc(String splitter) {
+        this.splitter = splitter;
+    }
+
     public String exec(Tuple input) throws IOException {
         try {
-            String sampleA_string = (String) input.get(0);
+            String inputTuple_str = new String(input.toDelimitedString(this.splitter));
+            List<String> inputList = Arrays.asList(inputTuple_str.split(","));
+            //System.out.println("----------inputList = " + inputList.toString());
+
+            String sampleA_string = inputList.get(0);
             String sampleB_string = "0xDEADBEEF";
             ArrayList<Double> sampleA_XPValues = new ArrayList<Double>();
             ArrayList<Double> sampleB_XPValues = new ArrayList<Double>();
@@ -19,14 +32,16 @@ public class SimiCalc extends EvalFunc<String> {
 
             for (int i = 1; i < input.size(); i++) {
                 if (secondHalf == false) {
-                    if (input.get(i) instanceof String) {
+                    // LOL HAX
+                    if (inputList.get(i).matches("sample_\\d*")) {
                         secondHalf = true;
-                        sampleB_string = (String)input.get(i);
+                        sampleB_string = inputList.get(i);
                     } else {
-                        sampleA_XPValues.add(Double.parseDouble(input.get(i).toString()));
+                        //System.out.println("inputList.get(" + i + ") = "+inputList.get(i));
+                        sampleA_XPValues.add(Double.parseDouble(inputList.get(i)));
                     }
                 } else {
-                    sampleB_XPValues.add(Double.parseDouble(input.get(i).toString()));
+                    sampleB_XPValues.add(Double.parseDouble(inputList.get(i)));
                 }
             }
 
