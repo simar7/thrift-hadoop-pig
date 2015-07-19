@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.Tuple;
@@ -23,6 +22,8 @@ public class SimiCalc extends EvalFunc<String> {
             //System.out.println("----------inputList = " + inputList.toString());
 
             String sampleA_string = inputList.get(0);
+            int sampleNumberA = Integer.parseInt(sampleA_string.substring(7, sampleA_string.length()));
+            int sampleNumberB = 0;
             String sampleB_string = "0xDEADBEEF";
             ArrayList<Double> sampleA_XPValues = new ArrayList<Double>();
             ArrayList<Double> sampleB_XPValues = new ArrayList<Double>();
@@ -33,7 +34,15 @@ public class SimiCalc extends EvalFunc<String> {
             for (int i = 1; i < input.size(); i++) {
                 if (secondHalf == false) {
                     // LOL HAX
-                    if (inputList.get(i).matches("sample_\\d*")) {
+                    sampleB_string = inputList.get(i);
+                    if (sampleB_string.matches("sample_\\d*")) {
+                        if (sampleA_string.equals(sampleB_string)) {
+                            return "";
+                        }
+                        sampleNumberB = Integer.parseInt(sampleB_string.substring(7, sampleB_string.length()));
+                        if (sampleNumberB < sampleNumberA) {
+                            return "";
+                        }
                         secondHalf = true;
                         sampleB_string = inputList.get(i);
                     } else {

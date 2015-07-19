@@ -10,5 +10,6 @@ samples2genebag = FOREACH samples2 GENERATE $0, (bag{tuple()}) TOBAG($1 ..) AS g
 */
 
 crossSamples = CROSS samples1, samples2;
-simiScores = FOREACH crossSamples GENERATE SimiCalculator($0..);
+orderedSamplesPairs = DISTINCT crossSamples;
+simiScores = FOREACH orderedSamplesPairs GENERATE SimiCalculator($0..) AS score;
 STORE simiScores INTO '$output' USING PigStorage(',');
