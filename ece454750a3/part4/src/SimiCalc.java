@@ -37,11 +37,11 @@ public class SimiCalc extends EvalFunc<String> {
                     sampleB_string = inputList.get(i);
                     if (sampleB_string.matches("sample_\\d*")) {
                         if (sampleA_string.equals(sampleB_string)) {
-                            return "";
+                            return "null";
                         }
                         sampleNumberB = Integer.parseInt(sampleB_string.substring(7, sampleB_string.length()));
                         if (sampleNumberB < sampleNumberA) {
-                            return "";
+                            return "null";
                         }
                         secondHalf = true;
                         sampleB_string = inputList.get(i);
