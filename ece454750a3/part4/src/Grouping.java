@@ -31,10 +31,13 @@ public class Grouping extends EvalFunc<DataBag> {
             int geneNumber = 1;
             String str = "";
             for(int i = 0; i< input.size(); i++) {
-                HashMap<String,String> in =new HashMap<String,String>();
-                in.put("gene_" + String.valueOf(geneNumber), inputList.get(i).toString());
+                Tuple t = tf.newTuple(2);
+                String s = "gene_" + String.valueOf(geneNumber);
+                t.set(0, s);
+                t.set(1, inputList.get(i).toString());
 
-                output.add(tf.newTuple(in));
+                output.add(t);
+                //output.add(tf.newTuple(t2));
                 geneNumber++;
             }
 
