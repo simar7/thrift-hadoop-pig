@@ -37,7 +37,7 @@ public class Maximum extends EvalFunc<String> {
         		str += "gene_" + samples.get(i).toString() + ",";
 
         	}
-        	return str;
+        	return str.substring(0,str.length()-1);
 
 
 		} catch(Exception e) {
