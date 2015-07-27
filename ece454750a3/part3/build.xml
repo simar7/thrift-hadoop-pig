@@ -5,6 +5,7 @@
     <property name="src" location="src"/>
     <property name="build" location="build"/>
     <property name="output" location="outputFolder"/>
+    <property name="TMPOUT" location="Part3.TMPOUT"/>
     <property name="input" location="inputFolder"/>
     <property name="hadoop.home" location="/usr/hdp/2.2.4.2-2/hadoop/"/>
     <property name="tuxbook.hadoop.home" location="/usr/local/hadoop/"/>
@@ -71,6 +72,7 @@
         <echo message="Housekeeping..."/>
         <delete dir="${build}"/>
         <delete file="part3.jar"/>
+        <delete dir="${TMPOUT}"/>
         <delete dir="${output}"/>
     </target>
 </project>
