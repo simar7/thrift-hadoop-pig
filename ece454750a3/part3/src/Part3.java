@@ -10,16 +10,14 @@
 */
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.examples.WordCount;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.lib.ChainMapper;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -60,12 +58,14 @@ public class Part3 {
 
         Text inputSamplePair = new Text();
         Text simiScore = new Text();
-        ArrayList<String> geneExpValues = new ArrayList<String>();
-        String sampleA, sampleB;
-        Double expValA, expValB;
-        int sampleID_A, sampleID_B;
+
 
         public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+            ArrayList<String> geneExpValues = new ArrayList<String>();
+            String sampleA, sampleB;
+            Double expValA, expValB;
+            int sampleID_A, sampleID_B;
 
             for (Text val : values) {
                 geneExpValues.add(val.toString());
@@ -106,6 +106,28 @@ public class Part3 {
         }
     }
 
+    public static class Part3Reducer2 extends Reducer<Text, Text, Text, DoubleWritable> {
+
+        DoubleWritable simiScore = new DoubleWritable();
+
+        public static double roundUP(double value, int places) {
+            BigDecimal bigDEE = new BigDecimal(value);
+            bigDEE = bigDEE.setScale(places, RoundingMode.HALF_UP);
+            return bigDEE.doubleValue();
+        }
+
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            double individualScore;
+            double finalScore = 0;
+            for (Text val : values) {
+                individualScore = Double.parseDouble(val.toString());
+                finalScore += individualScore;
+            }
+
+            simiScore.set(roundUP(finalScore, 2));
+            context.write(key, simiScore);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf1 = new Configuration();
@@ -137,7 +159,7 @@ public class Part3 {
         Job job2 = new Job(conf2, "Part3_Job2");
         job2.setJarByClass(Part3.class);
         job2.setMapperClass(Part3Mapper2.class);
-        //job2.setReducerClass(Part3Reducer2.class);
+        job2.setReducerClass(Part3Reducer2.class);
         job2.setOutputKeyClass(Text.class);
         job2.setOutputValueClass(DoubleWritable.class);
         job2.setMapOutputKeyClass(Text.class);
