@@ -11,6 +11,7 @@
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -45,7 +46,7 @@ public class Part3 {
                 geneNumber.set(currentGene);
                 geneExpValue = Double.parseDouble(itr.nextToken());
                 if (geneExpValue > 0.0) {
-                    curSample_and_gene.set(sampleID + "," + String.valueOf(geneExpValue));
+                    curSample_and_gene.set(sampleID + ":" + String.valueOf(geneExpValue));
                     context.write(geneNumber, curSample_and_gene);
                 }
                 currentGene++;
@@ -53,10 +54,45 @@ public class Part3 {
         } 
     }
 
+    public static class Part3Reducer1 extends Reducer<IntWritable, Text, Text, Text> {
+
+        Text inputSamplePair = new Text();
+        Text simiScore = new Text();
+        ArrayList<String> geneExpValues = new ArrayList<String>();
+        String sampleA, sampleB;
+        Double expValA, expValB;
+        int sampleID_A, sampleID_B;
+
+        public void reduce(IntWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+            for (Text val : values) {
+                geneExpValues.add(val.toString());
+            }
+
+            // Pairs approach
+            for (String value_1 : geneExpValues) {
+                sampleA = value_1.split(":")[0];
+                sampleID_A = Integer.parseInt(sampleA.split("_")[1]);
+                expValA = Double.parseDouble(value_1.split(":")[1]);
+
+                for (String value_2 : geneExpValues) {
+                    sampleB = value_2.split(":")[0];
+                    sampleID_B = Integer.parseInt(sampleB.split("_")[1]);
+                    expValB = Double.parseDouble(value_2.split(":")[1]);
+
+                    if (sampleID_A < sampleID_B) {
+                        inputSamplePair.set(sampleA + "," + sampleB);
+                        simiScore.set(String.valueOf(expValA * expValB));
+                        context.write(inputSamplePair, simiScore);
+                    }
+                }
+            }
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf1 = new Configuration();
-        conf1.set("mapreduce.output.textoutputformat.separator", ",");
+        conf1.set("mapreduce.output.textoutputformat.separator", ":");
        
         String[] otherArgs = new GenericOptionsParser(conf1, args).getRemainingArgs();
         if (otherArgs.length != 2) {
@@ -67,7 +103,7 @@ public class Part3 {
         Job job1 = new Job(conf1, "Part3_1");
         job1.setJarByClass(Part3.class);
         job1.setMapperClass(Part3Mapper1.class);
-        //job1.setReducerClass(Part3Reducer1.class);
+        job1.setReducerClass(Part3Reducer1.class);
         job1.setMapOutputKeyClass(IntWritable.class);
         job1.setMapOutputValueClass(Text.class);
         job1.setOutputKeyClass(Text.class);
@@ -76,5 +112,6 @@ public class Part3 {
         FileOutputFormat.setOutputPath(job1, new Path(otherArgs[1]));
         //job1.waitForCompletion(true);
         System.exit(job1.waitForCompletion(true) ? 0 : 1);
+
     }
 }
