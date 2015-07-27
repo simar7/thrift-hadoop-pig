@@ -45,7 +45,7 @@ public class Part3 {
                 geneNumber.set(currentGene);
                 geneExpValue = Double.parseDouble(itr.nextToken());
                 if (geneExpValue > 0.0) {
-                    curSample_and_gene.set(sampleID + "," + String.valueOf(geneExpVal));
+                    curSample_and_gene.set(sampleID + "," + String.valueOf(geneExpValue));
                     context.write(geneNumber, curSample_and_gene);
                 }
                 currentGene++;
@@ -58,7 +58,7 @@ public class Part3 {
         Configuration conf1 = new Configuration();
         conf1.set("mapreduce.output.textoutputformat.separator", ",");
        
-        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+        String[] otherArgs = new GenericOptionsParser(conf1, args).getRemainingArgs();
         if (otherArgs.length != 2) {
             System.err.println("Usage: part3 <in> <out>");
             System.exit(2);
