@@ -29,6 +29,8 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 public class Part3 {
 
+    private static final String TMPOUT = "Part3.TMPOUT";
+
     public static class Part3Mapper1 extends Mapper<Object, Text, IntWritable, Text> {
         private String sampleID;
         private Double geneExpValue;
@@ -90,6 +92,21 @@ public class Part3 {
         }
     }
 
+    public static class Part3Mapper2 extends Mapper<Object, Text, Text, Text> {
+
+        Text inputSamplePair = new Text();
+        Text simiScore = new Text();
+
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            StringTokenizer itr = new StringTokenizer(value.toString(), ":");
+
+            inputSamplePair.set(itr.nextToken());
+            simiScore.set(itr.nextToken());
+            context.write(inputSamplePair, simiScore);
+        }
+    }
+
+
     public static void main(String[] args) throws Exception {
         Configuration conf1 = new Configuration();
         conf1.set("mapreduce.output.textoutputformat.separator", ":");
@@ -100,7 +117,7 @@ public class Part3 {
             System.exit(2);
         }
  
-        Job job1 = new Job(conf1, "Part3_1");
+        Job job1 = new Job(conf1, "Part3_Job1");
         job1.setJarByClass(Part3.class);
         job1.setMapperClass(Part3Mapper1.class);
         job1.setReducerClass(Part3Reducer1.class);
@@ -109,9 +126,26 @@ public class Part3 {
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job1, new Path(otherArgs[0]));
-        FileOutputFormat.setOutputPath(job1, new Path(otherArgs[1]));
-        //job1.waitForCompletion(true);
-        System.exit(job1.waitForCompletion(true) ? 0 : 1);
+        FileOutputFormat.setOutputPath(job1, new Path(Part3.TMPOUT));
+        job1.waitForCompletion(true);
+        //System.exit(job1.waitForCompletion(true) ? 0 : 1);
+
+
+        Configuration conf2 = new Configuration();
+        conf2.set("mapreduce.output.textoutputformat.separator", ",");
+
+        Job job2 = new Job(conf2, "Part3_Job2");
+        job2.setJarByClass(Part3.class);
+        job2.setMapperClass(Part3Mapper2.class);
+        //job2.setReducerClass(Part3Reducer2.class);
+        job2.setOutputKeyClass(Text.class);
+        job2.setOutputValueClass(DoubleWritable.class);
+        job2.setMapOutputKeyClass(Text.class);
+        job2.setMapOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job2, new Path(Part3.TMPOUT));
+        FileOutputFormat.setOutputPath(job2, new Path(otherArgs[1]));
+        System.exit(job2.waitForCompletion(true) ? 0 : 1);
+
 
     }
 }
